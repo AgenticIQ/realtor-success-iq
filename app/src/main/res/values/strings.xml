@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Realtor Success IQ</string>
+    
+    <!-- Navigation -->
+    <string name="nav_today">Today</string>
+    <string name="nav_leads">Leads</string>
+    <string name="nav_score">Score</string>
+    <string name="nav_review">Review</string>
+    <string name="nav_settings">Settings</string>
+    
+    <!-- Auth -->
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_in_with_email">Sign in with Email</string>
+    <string name="demo_mode_login">Demo Mode Login</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_out">Sign Out</string>
+    
+    <!-- Today Screen -->
+    <string name="lead_gen_timer">Lead Gen Timer</string>
+    <string name="start_lead_gen">Start Lead Gen</string>
+    <string name="pause">Pause</string>
+    <string name="stop">Stop</string>
+    <string name="next_best_actions">Next Best Actions</string>
+    <string name="calls">Calls</string>
+    <string name="texts">Texts</string>
+    <string name="asks">Asks</string>
+    
+    <!-- Common -->
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="sync">Sync</string>
+    <string name="connected">Connected</string>
+    <string name="syncing">Syncing</string>
+    <string name="offline">Offline</string>
+    
+    <!-- Settings -->
+    <string name="demo_mode">Demo Mode</string>
+    <string name="crm_provider">CRM Provider</string>
+    <string name="theme_settings">Theme</string>
+    <string name="targets">Targets</string>
+    <string name="privacy_mode">Privacy Mode</string>
+    <string name="biometric_lock">Biometric Lock</string>
+    <string name="sim_preference">SIM Preference</string>
+</resources>
+
