@@ -42,12 +42,27 @@ jobs:
         fi
         chmod +x gradlew || true
         ls -la gradlew || echo "gradlew not found"
+        ./gradlew --version
     
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew || true
     
-    - name: Build APK
-      run: ./gradlew assembleDebug --stacktrace --info
+    - name: Clean Gradle
+      run: ./gradlew clean --no-daemon || echo "Clean failed, continuing..."
+    
+    - name: Verify project structure
+      run: |
+        echo "=== Project Structure ==="
+        ls -la
+        echo "=== Settings.gradle ==="
+        cat settings.gradle || echo "settings.gradle not found"
+        echo "=== Build.gradle ==="
+        cat build.gradle || echo "build.gradle not found"
+        echo "=== App build.gradle exists ==="
+        test -f app/build.gradle && echo "YES" || echo "NO"
+    
+    - name: Build APK with verbose logging
+      run: ./gradlew assembleDebug --stacktrace --info --no-daemon
       env:
         ANDROID_HOME: ${{ env.ANDROID_HOME }}
         ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
