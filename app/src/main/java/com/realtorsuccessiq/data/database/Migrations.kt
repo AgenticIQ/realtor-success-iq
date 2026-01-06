@@ -96,5 +96,13 @@ object Migrations {
             database.execSQL("ALTER TABLE user_settings ADD COLUMN crmFocusStages TEXT NOT NULL DEFAULT ''")
         }
     }
+
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // Brokerages: add basic contact details
+            database.execSQL("ALTER TABLE brokerages ADD COLUMN phone TEXT")
+            database.execSQL("ALTER TABLE brokerages ADD COLUMN address TEXT")
+        }
+    }
 }
 

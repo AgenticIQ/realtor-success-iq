@@ -2,14 +2,22 @@ package com.realtorsuccessiq.ui.screens.settings
 
 import android.content.Intent
 import android.net.Uri
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.realtorsuccessiq.BuildConfig
 import com.realtorsuccessiq.updates.NightlyUpdateManager
@@ -26,6 +34,7 @@ fun SettingsScreen(
     var showStagesDialog by remember { mutableStateOf(false) }
     var updateStatus by remember { mutableStateOf<String?>(null) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
+    var apiKeyVisible by remember { mutableStateOf(false) }
     
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -87,12 +96,63 @@ fun SettingsScreen(
         
         item {
             if (uiState.crmProvider == "followupboss") {
+                val masked = if (uiState.crmApiKey.isNullOrBlank()) "" else uiState.crmApiKey!!
                 OutlinedTextField(
-                    value = uiState.crmApiKey ?: "",
+                    value = masked,
                     onValueChange = { viewModel.setCrmApiKey(it) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Follow Up Boss API Key") },
-                    singleLine = true
+                    singleLine = true,
+                    visualTransformation = if (apiKeyVisible) {
+                        androidx.compose.ui.text.input.VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                if (apiKeyVisible) {
+                                    apiKeyVisible = false
+                                    return@IconButton
+                                }
+
+                                val activity = (context as? FragmentActivity) ?: return@IconButton
+                                val canAuth = BiometricManager.from(activity).canAuthenticate(
+                                    BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                                )
+                                if (canAuth != BiometricManager.BIOMETRIC_SUCCESS) {
+                                    // If device has no lock, don't reveal.
+                                    return@IconButton
+                                }
+
+                                val executor = ContextCompat.getMainExecutor(activity)
+                                val prompt = BiometricPrompt(
+                                    activity,
+                                    executor,
+                                    object : BiometricPrompt.AuthenticationCallback() {
+                                        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                                            apiKeyVisible = true
+                                        }
+                                    }
+                                )
+                                val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                                    .setTitle("Reveal API Key")
+                                    .setSubtitle("Confirm with device password or biometrics")
+                                    .setAllowedAuthenticators(
+                                        BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                                            BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                                    )
+                                    .build()
+                                prompt.authenticate(promptInfo)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = if (apiKeyVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                contentDescription = if (apiKeyVisible) "Hide API key" else "Reveal API key"
+                            )
+                        }
+                    }
                 )
                 Text(
                     text = "Note: “Demo Mode” is only for sign-in. You can still sync real contacts from Follow Up Boss here.",

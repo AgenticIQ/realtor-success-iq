@@ -24,7 +24,8 @@ object DatabaseModule {
         )
         .addMigrations(
             com.realtorsuccessiq.data.database.Migrations.MIGRATION_1_2,
-            com.realtorsuccessiq.data.database.Migrations.MIGRATION_2_3
+            com.realtorsuccessiq.data.database.Migrations.MIGRATION_2_3,
+            com.realtorsuccessiq.data.database.Migrations.MIGRATION_3_4
         )
         .build()
     }

@@ -45,17 +45,19 @@ class ReviewViewModel @Inject constructor(
             ?.map { it.trim() }
             ?.filter { it.isNotBlank() }
             .orEmpty()
+        val focusTagsNorm = focusTags.map { it.trim().lowercase() }.filter { it.isNotBlank() }.toSet()
+        val focusStagesNorm = focusStages.map { it.trim().lowercase() }.filter { it.isNotBlank() }.toSet()
 
         val allowedPersonIds = contacts
             .filter { c ->
-                val tagOk = focusTags.isEmpty() || c.getTagsList().any { it in focusTags }
-                val stageOk = focusStages.isEmpty() || (c.stage != null && focusStages.contains(c.stage))
+                val tagOk = focusTagsNorm.isEmpty() || c.getTagsList().any { it.trim().lowercase() in focusTagsNorm }
+                val stageOk = focusStagesNorm.isEmpty() || (c.stage?.trim()?.lowercase() in focusStagesNorm)
                 tagOk && stageOk
             }
             .map { it.id }
             .toSet()
 
-        val filteredLogs = if (focusTags.isEmpty() && focusStages.isEmpty()) {
+        val filteredLogs = if (focusTagsNorm.isEmpty() && focusStagesNorm.isEmpty()) {
             logs
         } else {
             logs.filter { it.personId == null || (it.personId in allowedPersonIds) }

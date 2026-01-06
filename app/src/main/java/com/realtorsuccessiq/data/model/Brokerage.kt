@@ -8,6 +8,8 @@ data class Brokerage(
     @PrimaryKey val id: String,
     val name: String,
     val adminEmail: String,
+    val phone: String? = null,
+    val address: String? = null,
     val logoUrl: String? = null,
     val primaryColor: Long = 0xFF16A34A, // ARGB
     val secondaryColor: Long = 0xFF0B1220,

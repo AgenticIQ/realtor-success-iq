@@ -4,10 +4,10 @@ import androidx.compose.ui.graphics.Color
 
 object ColorPalette {
     // Success Minimal (default)
-    val SuccessMinimalPrimary = Color(0xFF16A34A) // Success Green
+    val SuccessMinimalPrimary = Color(0xFF16A34A) // Success Green (soft)
     val SuccessMinimalSecondary = Color(0xFF0B1220) // Deep Navy
     val SuccessMinimalAccent = Color(0xFFD4AF37) // Gold
-    val SuccessMinimalBackground = Color(0xFFF8FAFC)
+    val SuccessMinimalBackground = Color(0xFFF0FDF4) // Very soft green-tinted background
     
     // Trust Blue
     val TrustBluePrimary = Color(0xFF2563EB)

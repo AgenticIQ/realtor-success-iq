@@ -2,12 +2,14 @@ package com.realtorsuccessiq.ui.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.realtorsuccessiq.data.model.Brokerage
 import com.realtorsuccessiq.data.repository.AdminRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,6 +35,41 @@ class AdminAuthViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _authState.value = AdminAuthState.Error(e.message ?: "Sign in failed")
+            }
+        }
+    }
+
+    fun registerBrokerage(
+        brokerageName: String,
+        adminEmail: String,
+        password: String,
+        phone: String?,
+        address: String?
+    ) {
+        viewModelScope.launch {
+            _authState.value = AdminAuthState.Loading
+            try {
+                val existing = adminRepository.getBrokerageByEmail(adminEmail)
+                if (existing != null) {
+                    _authState.value = AdminAuthState.Error("A brokerage with this admin email already exists")
+                    return@launch
+                }
+
+                // MVP: password is not stored/validated yet (local-only demo admin).
+                @Suppress("UNUSED_VARIABLE")
+                val ignored = password
+
+                val brokerage = Brokerage(
+                    id = UUID.randomUUID().toString(),
+                    name = brokerageName.trim(),
+                    adminEmail = adminEmail.trim(),
+                    phone = phone?.trim()?.takeIf { it.isNotBlank() },
+                    address = address?.trim()?.takeIf { it.isNotBlank() }
+                )
+                adminRepository.saveBrokerage(brokerage)
+                _authState.value = AdminAuthState.Authenticated(brokerage.id)
+            } catch (e: Exception) {
+                _authState.value = AdminAuthState.Error(e.message ?: "Registration failed")
             }
         }
     }

@@ -28,9 +28,11 @@ class LeadsViewModel @Inject constructor(
         _focusTags,
         _focusStages
     ) { query, leads, focusTags, focusStages ->
+        val focusTagsNorm = focusTags.map { it.trim().lowercase() }.filter { it.isNotBlank() }.toSet()
+        val focusStagesNorm = focusStages.map { it.trim().lowercase() }.filter { it.isNotBlank() }.toSet()
         val filteredByCrm = leads.filter { c ->
-            val tagOk = focusTags.isEmpty() || c.getTagsList().any { it in focusTags }
-            val stageOk = focusStages.isEmpty() || (c.stage != null && focusStages.contains(c.stage))
+            val tagOk = focusTagsNorm.isEmpty() || c.getTagsList().any { it.trim().lowercase() in focusTagsNorm }
+            val stageOk = focusStagesNorm.isEmpty() || (c.stage?.trim()?.lowercase() in focusStagesNorm)
             tagOk && stageOk
         }
         LeadsUiState(

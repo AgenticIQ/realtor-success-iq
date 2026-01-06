@@ -65,7 +65,17 @@ class MainActivity : ComponentActivity() {
                                     com.realtorsuccessiq.ui.admin.AdminAuthScreen(
                                         onSignIn = { email, password ->
                                             adminAuthViewModel.signIn(email, password)
-                                        }
+                                        },
+                                        onRegister = { brokerageName, adminEmail, password, phone, address ->
+                                            adminAuthViewModel.registerBrokerage(
+                                                brokerageName = brokerageName,
+                                                adminEmail = adminEmail,
+                                                password = password,
+                                                phone = phone,
+                                                address = address
+                                            )
+                                        },
+                                        onBackToAgentLogin = { isAdminMode = false }
                                     )
                                 }
                                 is com.realtorsuccessiq.ui.admin.AdminAuthState.Authenticated -> {
@@ -82,6 +92,16 @@ class MainActivity : ComponentActivity() {
                                         onSignIn = { email, password ->
                                             adminAuthViewModel.signIn(email, password)
                                         },
+                                        onRegister = { brokerageName, adminEmail, password, phone, address ->
+                                            adminAuthViewModel.registerBrokerage(
+                                                brokerageName = brokerageName,
+                                                adminEmail = adminEmail,
+                                                password = password,
+                                                phone = phone,
+                                                address = address
+                                            )
+                                        },
+                                        onBackToAgentLogin = { isAdminMode = false },
                                         errorMessage = brokerAuthState.message
                                     )
                                 }

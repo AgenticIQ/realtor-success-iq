@@ -13,16 +13,49 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = ColorPalette.SuccessMinimalPrimary,
-    secondary = ColorPalette.SuccessMinimalSecondary,
-    tertiary = ColorPalette.SuccessMinimalAccent
+    primary = Color(0xFF22C55E),
+    onPrimary = Color(0xFF052E16),
+    primaryContainer = Color(0xFF064E3B),
+    onPrimaryContainer = Color(0xFFD1FAE5),
+
+    secondary = Color(0xFF94A3B8),
+    onSecondary = Color(0xFF0B1220),
+
+    tertiary = ColorPalette.SuccessMinimalAccent,
+    onTertiary = Color(0xFF0B1220),
+
+    background = ColorPalette.SuccessMinimalSecondary,
+    onBackground = Color(0xFFE2E8F0),
+
+    surface = Color(0xFF0F172A),
+    onSurface = Color(0xFFE2E8F0),
+    surfaceVariant = Color(0xFF111827),
+    onSurfaceVariant = Color(0xFFCBD5E1),
+
+    outline = Color(0xFF334155)
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = ColorPalette.SuccessMinimalPrimary,
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFD1FAE5),
+    onPrimaryContainer = Color(0xFF052E16),
+
     secondary = ColorPalette.SuccessMinimalSecondary,
+    onSecondary = Color.White,
+
     tertiary = ColorPalette.SuccessMinimalAccent,
-    background = ColorPalette.SuccessMinimalBackground
+    onTertiary = Color(0xFF0B1220),
+
+    background = ColorPalette.SuccessMinimalBackground,
+    onBackground = ColorPalette.SuccessMinimalSecondary,
+
+    surface = Color.White,
+    onSurface = ColorPalette.SuccessMinimalSecondary,
+    surfaceVariant = Color(0xFFE2E8F0),
+    onSurfaceVariant = Color(0xFF0F172A),
+
+    outline = Color(0xFF94A3B8)
 )
 
 @Composable
@@ -39,17 +72,11 @@ fun RealtorSuccessTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> {
-            darkColorScheme(
-                primary = customPrimary ?: themePreset.primary,
-                secondary = themePreset.secondary,
-                tertiary = themePreset.accent
-            )
+            DarkColorScheme.copy(primary = customPrimary ?: themePreset.primary)
         }
         else -> {
-            lightColorScheme(
+            LightColorScheme.copy(
                 primary = customPrimary ?: themePreset.primary,
-                secondary = themePreset.secondary,
-                tertiary = themePreset.accent,
                 background = themePreset.background
             )
         }

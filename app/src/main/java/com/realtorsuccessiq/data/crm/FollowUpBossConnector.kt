@@ -52,19 +52,10 @@ class FollowUpBossConnector(
     
     override suspend fun syncDownContacts(cursor: String?): SyncResult {
         return try {
-            val response = api.getPeople(cursor)
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) {
-                    SyncResult.Success(body.items.size)
-                } else {
-                    SyncResult.Success(0)
-                }
-            } else if (response.code() == 429) {
-                SyncResult.RateLimited
-            } else {
-                SyncResult.Error("Failed to sync contacts: ${response.code()}")
-            }
+            val people = fetchAllPeople()
+            SyncResult.Success(people.size)
+        } catch (e: RateLimitException) {
+            SyncResult.RateLimited
         } catch (e: Exception) {
             SyncResult.Error(e.message ?: "Sync failed")
         }
@@ -127,22 +118,15 @@ class FollowUpBossConnector(
     
     override suspend fun searchContacts(query: String): List<Contact> {
         return try {
-            val response = api.getPeople()
-            if (response.isSuccessful) {
-                val body = response.body()
-                val people = body?.items.orEmpty()
-                people
-                    .mapNotNull { mapPersonToContact(it) }
-                    .filter {
-                        if (query.isBlank()) true
-                        else it.name.contains(query, ignoreCase = true) ||
-                            it.phone?.contains(query, ignoreCase = true) == true ||
-                            it.email?.contains(query, ignoreCase = true) == true
-                    }
-            } else {
-                emptyList()
+            val people = fetchAllPeople()
+            val contacts = people.mapNotNull { mapPersonToContact(it) }
+            if (query.isBlank()) contacts
+            else contacts.filter {
+                it.name.contains(query, ignoreCase = true) ||
+                    it.phone?.contains(query, ignoreCase = true) == true ||
+                    it.email?.contains(query, ignoreCase = true) == true
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }
     }
@@ -176,11 +160,39 @@ class FollowUpBossConnector(
             phone = phone,
             email = email,
             tags = tags,
-            stage = stage,
+            stage = stage?.trim(),
             segment = "C",
             providerId = pid,
             updatedAt = System.currentTimeMillis()
         )
+    }
+
+    private class RateLimitException : RuntimeException()
+
+    private suspend fun fetchAllPeople(): List<FollowUpBossPerson> {
+        val all = mutableListOf<FollowUpBossPerson>()
+        var cursor: String? = null
+
+        // Safety limit to prevent infinite loops if cursor repeats
+        val seenCursors = mutableSetOf<String>()
+
+        repeat(200) { // up to 200 pages (typically plenty)
+            val response = api.getPeople(cursor)
+            if (response.code() == 429) throw RateLimitException()
+            if (!response.isSuccessful) {
+                throw RuntimeException("Failed to fetch people: ${response.code()}")
+            }
+            val body = response.body() ?: break
+            val items = body.items
+            if (items.isEmpty()) break
+            all.addAll(items)
+
+            val next = body.metadata?.cursor?.takeIf { it.isNotBlank() } ?: break
+            if (!seenCursors.add(next)) break
+            cursor = next
+        }
+
+        return all
     }
 }
 
