@@ -25,6 +25,7 @@ fun SettingsScreen(
     var showTagsDialog by remember { mutableStateOf(false) }
     var showStagesDialog by remember { mutableStateOf(false) }
     var updateStatus by remember { mutableStateOf<String?>(null) }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
     
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -37,13 +38,37 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.headlineMedium
             )
         }
+
+        item {
+            if (BuildConfig.FLAVOR == "next") {
+                OutlinedButton(
+                    onClick = { showPrivacyDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Privacy Policy (Draft)")
+                }
+                Text(
+                    text = "In NEXT, privacy + analytics controls are being built out. Use the Plan tab to set your logo and conversation rules.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
         
         item {
-            SwitchSetting(
-                title = "Demo Mode",
-                checked = uiState.demoMode,
-                onCheckedChange = { viewModel.setDemoMode(it) }
-            )
+            if (BuildConfig.FLAVOR != "next") {
+                SwitchSetting(
+                    title = "Demo Mode",
+                    checked = uiState.demoMode,
+                    onCheckedChange = { viewModel.setDemoMode(it) }
+                )
+            } else {
+                Text(
+                    text = "NEXT build: demo data is disabled. Connect your CRM to test with real contacts.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
         
         item {
@@ -245,6 +270,24 @@ fun SettingsScreen(
             onApply = { viewModel.setFocusStages(it); showStagesDialog = false }
         )
     }
+
+    if (showPrivacyDialog) {
+        AlertDialog(
+            onDismissRequest = { showPrivacyDialog = false },
+            title = { Text("Privacy Policy (Draft)") },
+            text = {
+                Text(
+                    "We are privacy-first. Analytics is opt-out and is designed to be aggregated.\n\n" +
+                        "We do NOT collect or sell your contacts’ personal data for marketing.\n\n" +
+                        "We may collect (if enabled): screen usage counts, action counts (calls/texts logged), and app version.\n\n" +
+                        "You can disable analytics in Settings (NEXT build)."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showPrivacyDialog = false }) { Text("OK") }
+            }
+        )
+    }
 }
 
 @Composable
@@ -270,7 +313,11 @@ fun CRMProviderSelector(
     selectedProvider: String,
     onProviderSelected: (String) -> Unit
 ) {
-    val providers = listOf("demo", "followupboss", "salesforce")
+    val providers = if (BuildConfig.FLAVOR == "next") {
+        listOf("followupboss", "salesforce")
+    } else {
+        listOf("demo", "followupboss", "salesforce")
+    }
     
     providers.forEach { provider ->
         Row(

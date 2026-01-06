@@ -4,7 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.realtorsuccessiq.BuildConfig
 import com.realtorsuccessiq.ui.screens.leads.LeadsScreen
+import com.realtorsuccessiq.ui.screens.plan.PlanScreen
+import com.realtorsuccessiq.ui.screens.privacy.PrivacyPolicyScreen
 import com.realtorsuccessiq.ui.screens.review.ReviewScreen
 import com.realtorsuccessiq.ui.screens.score.ScoreScreen
 import com.realtorsuccessiq.ui.screens.settings.SettingsScreen
@@ -25,11 +28,17 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Score.route) {
             ScoreScreen()
         }
+        if (BuildConfig.FLAVOR == "next") {
+            composable(Screen.Plan.route) { PlanScreen() }
+        }
         composable(Screen.Review.route) {
             ReviewScreen()
         }
         composable(Screen.Settings.route) {
             SettingsScreen()
+        }
+        composable(Screen.Privacy.route) {
+            PrivacyPolicyScreen()
         }
     }
 }
@@ -38,7 +47,9 @@ sealed class Screen(val route: String) {
     object Today : Screen("today")
     object Leads : Screen("leads")
     object Score : Screen("score")
+    object Plan : Screen("plan")
     object Review : Screen("review")
     object Settings : Screen("settings")
+    object Privacy : Screen("privacy")
 }
 
