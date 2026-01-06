@@ -74,7 +74,14 @@ jobs:
     - name: Prepare Nightly APK asset
       run: |
         mkdir -p dist
-        cp app/build/outputs/apk/release/app-release.apk dist/realtorsuccessiq-nightly.apk
+        echo "Release APK directory:"
+        ls -la app/build/outputs/apk/release || true
+        APK_PATH="$(ls -1 app/build/outputs/apk/release/*.apk 2>/dev/null | head -n 1)"
+        if [ -z "$APK_PATH" ]; then
+          echo "No APK found in app/build/outputs/apk/release/"
+          exit 1
+        fi
+        cp "$APK_PATH" dist/realtorsuccessiq-nightly.apk
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
