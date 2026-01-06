@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -16,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.realtorsuccessiq.data.repository.DataInitializer
 import com.realtorsuccessiq.ui.auth.AuthViewModel
@@ -42,7 +44,7 @@ class MainActivity : ComponentActivity() {
         
         setContent {
             val authViewModel: AuthViewModel = viewModel()
-            val authState = authViewModel.authState.value
+            val authState by authViewModel.authState.collectAsStateWithLifecycle()
             
             RealtorSuccessTheme {
                 Surface(
@@ -52,7 +54,7 @@ class MainActivity : ComponentActivity() {
                     // Check if admin mode
                     var isAdminMode by remember { mutableStateOf(false) }
                     val adminAuthViewModel: com.realtorsuccessiq.ui.admin.AdminAuthViewModel = viewModel()
-                    val adminAuthState = adminAuthViewModel.authState.value
+                    val adminAuthState by adminAuthViewModel.authState.collectAsStateWithLifecycle()
                     
                     when {
                         isAdminMode -> {
@@ -87,7 +89,7 @@ class MainActivity : ComponentActivity() {
                         else -> {
                             when (authState) {
                                 is com.realtorsuccessiq.ui.auth.AuthState.Loading -> {
-                                    // Show loading
+                                    CircularProgressIndicator()
                                 }
                                 is com.realtorsuccessiq.ui.auth.AuthState.Unauthenticated,
                                 is com.realtorsuccessiq.ui.auth.AuthState.DemoMode -> {
