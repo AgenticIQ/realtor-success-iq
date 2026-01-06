@@ -25,6 +25,27 @@ android {
         }
     }
 
+    flavorDimensions += "track"
+    productFlavors {
+        stable {
+            dimension "track"
+            // Keep the existing app exactly as-is.
+            applicationId "com.realtorsuccessiq"
+            resValue "string", "app_name", "RealtorSuccessIQ"
+            buildConfigField "String", "UPDATE_TAG", "\"nightly\""
+            buildConfigField "String", "UPDATE_APK_NAME", "\"realtorsuccessiq-nightly.apk\""
+        }
+        next {
+            dimension "track"
+            // Separate installable app for V2/V3 work.
+            applicationId "com.realtorsuccessiq.next"
+            resValue "string", "app_name", "RealtorSuccessIQ NEXT"
+            versionNameSuffix "-next"
+            buildConfigField "String", "UPDATE_TAG", "\"nightly-next\""
+            buildConfigField "String", "UPDATE_APK_NAME", "\"realtorsuccessiq-next.apk\""
+        }
+    }
+
     def signingEnabled = System.getenv("RSIQ_KEYSTORE_PATH") != null &&
             System.getenv("RSIQ_KEYSTORE_PASSWORD") != null &&
             System.getenv("RSIQ_KEY_ALIAS") != null &&

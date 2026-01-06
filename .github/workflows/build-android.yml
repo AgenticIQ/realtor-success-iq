@@ -80,36 +80,48 @@ jobs:
           echo "RSIQ_KEY_PASSWORD=$PASS" >> $GITHUB_ENV
         fi
     
-    - name: Build APK with verbose logging
+    - name: Build stable + next release APKs (with verbose logging)
       run: |
-        gradle assembleRelease -PciVersionCode=${{ github.run_number }} -PciVersionName=1.0.0-nightly.${{ github.run_number }} --stacktrace --info --warning-mode=all --no-daemon
+        gradle assembleStableRelease assembleNextRelease \
+          -PciVersionCode=${{ github.run_number }} \
+          -PciVersionName=1.0.0-nightly.${{ github.run_number }} \
+          --stacktrace --info --warning-mode=all --no-daemon
       env:
         ANDROID_HOME: ${{ env.ANDROID_HOME }}
         ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
     
-    - name: Prepare Nightly APK asset
+    - name: Prepare Nightly APK assets
       run: |
         mkdir -p dist
-        echo "Release APK directory:"
-        ls -la app/build/outputs/apk/release || true
-        APK_PATH="$(ls -1 app/build/outputs/apk/release/*.apk 2>/dev/null | head -n 1)"
-        if [ -z "$APK_PATH" ]; then
-          echo "No APK found in app/build/outputs/apk/release/"
+        echo "Stable Release APK directory:"
+        ls -la app/build/outputs/apk/stable/release || true
+        STABLE_APK="$(ls -1 app/build/outputs/apk/stable/release/*.apk 2>/dev/null | head -n 1)"
+        if [ -z "$STABLE_APK" ]; then
+          echo "No stable APK found in app/build/outputs/apk/stable/release/"
           exit 1
         fi
-        cp "$APK_PATH" dist/realtorsuccessiq-nightly.apk
+        cp "$STABLE_APK" dist/realtorsuccessiq-nightly.apk
+
+        echo "Next Release APK directory:"
+        ls -la app/build/outputs/apk/next/release || true
+        NEXT_APK="$(ls -1 app/build/outputs/apk/next/release/*.apk 2>/dev/null | head -n 1)"
+        if [ -z "$NEXT_APK" ]; then
+          echo "No next APK found in app/build/outputs/apk/next/release/"
+          exit 1
+        fi
+        cp "$NEXT_APK" dist/realtorsuccessiq-next.apk
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: realtorsuccessiq-nightly-apk
-        path: dist/realtorsuccessiq-nightly.apk
+        name: nightly-apks
+        path: dist/*.apk
         retention-days: 30
         if-no-files-found: warn
 
     # Make updates easy: publish the newest Debug APK to a consistent GitHub Release ("nightly").
     # The app can link users here so they always find the latest build in one place.
-    - name: Publish APK to GitHub Release (nightly)
+    - name: Publish STABLE APK to GitHub Release (nightly)
       if: github.event_name != 'pull_request'
       uses: softprops/action-gh-release@v2
       with:
@@ -117,4 +129,13 @@ jobs:
         name: Nightly (auto)
         prerelease: true
         files: dist/realtorsuccessiq-nightly.apk
+
+    - name: Publish NEXT APK to GitHub Release (nightly-next)
+      if: github.event_name != 'pull_request'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: nightly-next
+        name: Nightly NEXT (auto)
+        prerelease: true
+        files: dist/realtorsuccessiq-next.apk
 

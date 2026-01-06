@@ -15,8 +15,8 @@ import com.realtorsuccessiq.BuildConfig
 import java.io.File
 
 object NightlyUpdateManager {
-    private const val NIGHTLY_APK_URL =
-        "https://github.com/AgenticIQ/realtor-success-iq/releases/download/nightly/realtorsuccessiq-nightly.apk"
+    private val NIGHTLY_APK_URL: String
+        get() = "https://github.com/AgenticIQ/realtor-success-iq/releases/download/${BuildConfig.UPDATE_TAG}/${BuildConfig.UPDATE_APK_NAME}"
 
     private const val APK_FILE_NAME = "realtorsuccessiq-nightly.apk"
 
