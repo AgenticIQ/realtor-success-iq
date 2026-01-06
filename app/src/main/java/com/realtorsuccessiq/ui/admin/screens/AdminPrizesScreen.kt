@@ -50,7 +50,7 @@ fun AdminPrizesScreen(
             items(uiState.prizes) { prize ->
                 PrizeCard(
                     prize = prize,
-                    onEdit = { /* Edit prize */ */ },
+                    onEdit = { /* TODO: implement edit flow */ },
                     onDeactivate = { viewModel.deactivatePrize(prize.id) }
                 )
             }
