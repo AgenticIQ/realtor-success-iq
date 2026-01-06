@@ -27,6 +27,7 @@ class LocalRepository(
     suspend fun insertContact(contact: Contact) = contactDao.insertContact(contact)
     suspend fun insertContacts(contacts: List<Contact>) = contactDao.insertContacts(contacts)
     suspend fun updateContact(contact: Contact) = contactDao.updateContact(contact)
+    suspend fun deleteDemoContacts() = contactDao.deleteDemoContacts()
     
     // Tasks
     fun getPendingTasks(): Flow<List<Task>> = taskDao.getPendingTasks()

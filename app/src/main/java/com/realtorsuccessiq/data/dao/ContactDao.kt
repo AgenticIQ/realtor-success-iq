@@ -32,5 +32,8 @@ interface ContactDao {
     
     @Delete
     suspend fun deleteContact(contact: Contact)
+
+    @Query("DELETE FROM contacts WHERE id LIKE 'demo-%'")
+    suspend fun deleteDemoContacts()
 }
 

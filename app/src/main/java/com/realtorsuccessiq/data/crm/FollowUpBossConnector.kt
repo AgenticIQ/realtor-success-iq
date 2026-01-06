@@ -56,7 +56,7 @@ class FollowUpBossConnector(
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
-                    SyncResult.Success(body.people.size)
+                    SyncResult.Success(body.items.size)
                 } else {
                     SyncResult.Success(0)
                 }
@@ -75,7 +75,7 @@ class FollowUpBossConnector(
             val response = api.getTasks(cursor)
             if (response.isSuccessful) {
                 val body = response.body()
-                SyncResult.Success(body?.tasks?.size ?: 0)
+                SyncResult.Success(body?.items?.size ?: 0)
             } else if (response.code() == 429) {
                 SyncResult.RateLimited
             } else {
@@ -130,7 +130,7 @@ class FollowUpBossConnector(
             val response = api.getPeople()
             if (response.isSuccessful) {
                 val body = response.body()
-                val people = body?.people.orEmpty()
+                val people = body?.items.orEmpty()
                 people
                     .mapNotNull { mapPersonToContact(it) }
                     .filter {

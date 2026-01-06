@@ -69,16 +69,34 @@ fun SettingsScreen(
                     label = { Text("Follow Up Boss API Key") },
                     singleLine = true
                 )
+                Text(
+                    text = "Note: “Demo Mode” is only for sign-in. You can still sync real contacts from Follow Up Boss here.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
         item {
+            val isSyncing = uiState.syncStatus is SyncStatus.Syncing
             Button(
                 onClick = { viewModel.syncNow() },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isSyncing
             ) {
-                Text("Sync Now")
+                Text(if (isSyncing) "Syncing…" else "Sync Now")
             }
+        }
+
+        item {
+            val statusText = when (uiState.syncStatus) {
+                is SyncStatus.Connected -> "Connected"
+                is SyncStatus.Syncing -> "Syncing…"
+                is SyncStatus.RateLimited -> "Rate limited"
+                is SyncStatus.Error -> "Error: ${(uiState.syncStatus as SyncStatus.Error).message}"
+                is SyncStatus.Disconnected -> "Disconnected"
+            }
+            Text(text = "Status: $statusText", style = MaterialTheme.typography.bodyMedium)
         }
 
         item {
@@ -161,22 +179,6 @@ fun SettingsScreen(
         }
 
         item {
-            Text(
-                text = "Sync Status",
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-
-        item {
-            val statusText = when (uiState.syncStatus) {
-                is SyncStatus.Connected -> "Connected"
-                is SyncStatus.Syncing -> "Syncing…"
-                is SyncStatus.RateLimited -> "Rate limited"
-                is SyncStatus.Error -> "Error: ${(uiState.syncStatus as SyncStatus.Error).message}"
-                is SyncStatus.Disconnected -> "Disconnected"
-            }
-            Text(text = statusText, style = MaterialTheme.typography.bodyMedium)
-
             val lastSync = uiState.lastSyncAt
             if (lastSync != null) {
                 Text(

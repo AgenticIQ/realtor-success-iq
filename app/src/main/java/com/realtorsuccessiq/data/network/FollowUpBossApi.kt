@@ -34,14 +34,23 @@ data class FollowUpBossIdentity(
 )
 
 data class FollowUpBossPeopleResponse(
-    val people: List<FollowUpBossPerson> = emptyList(),
+    @SerializedName("people") val people: List<FollowUpBossPerson>? = null,
+    // Some APIs use "results" as the list wrapper; accept both to be resilient.
+    @SerializedName("results") val results: List<FollowUpBossPerson>? = null,
     @SerializedName("_metadata") val metadata: FollowUpBossMetadata? = null
-)
+) {
+    val items: List<FollowUpBossPerson>
+        get() = people ?: results ?: emptyList()
+}
 
 data class FollowUpBossTasksResponse(
-    val tasks: List<FollowUpBossTask> = emptyList(),
+    @SerializedName("tasks") val tasks: List<FollowUpBossTask>? = null,
+    @SerializedName("results") val results: List<FollowUpBossTask>? = null,
     @SerializedName("_metadata") val metadata: FollowUpBossMetadata? = null
-)
+) {
+    val items: List<FollowUpBossTask>
+        get() = tasks ?: results ?: emptyList()
+}
 
 data class FollowUpBossMetadata(
     val cursor: String? = null

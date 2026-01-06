@@ -101,7 +101,13 @@ class SettingsViewModel @Inject constructor(
     fun setCrmProvider(provider: String) {
         viewModelScope.launch {
             val settings = localRepository.getSettingsSync() ?: UserSettings()
-            localRepository.saveSettings(settings.copy(crmProvider = provider))
+            if (provider != "demo") {
+                // When switching to a real CRM, remove seeded demo contacts to avoid mixing datasets.
+                localRepository.deleteDemoContacts()
+                localRepository.saveSettings(settings.copy(crmProvider = provider, demoMode = false))
+            } else {
+                localRepository.saveSettings(settings.copy(crmProvider = provider))
+            }
         }
     }
     
@@ -130,10 +136,14 @@ class SettingsViewModel @Inject constructor(
 
     fun syncNow() {
         viewModelScope.launch {
+            val settings = localRepository.getSettingsSync() ?: UserSettings()
+            if (settings.crmProvider != "demo") {
+                // Ensure mock/demo contacts aren't mixed into real CRM testing.
+                localRepository.deleteDemoContacts()
+            }
             crmRepository.validateConnection()
             crmRepository.syncDownContacts()
             crmRepository.syncDownTasks()
-            val settings = localRepository.getSettingsSync() ?: UserSettings()
             localRepository.saveSettings(settings.copy(lastSyncAt = System.currentTimeMillis()))
         }
     }
