@@ -102,11 +102,11 @@ class CrmRepository(
     }
 }
 
-enum class SyncStatus {
-    Connected,
-    Syncing,
-    Disconnected,
-    Error,
-    RateLimited
+sealed class SyncStatus {
+    data object Connected : SyncStatus()
+    data object Syncing : SyncStatus()
+    data object Disconnected : SyncStatus()
+    data class Error(val message: String) : SyncStatus()
+    data object RateLimited : SyncStatus()
 }
 
