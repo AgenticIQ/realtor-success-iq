@@ -40,8 +40,8 @@ jobs:
           echo "Generating Gradle wrapper..."
           gradle wrapper --gradle-version 8.2 --distribution-type all
         fi
-        chmod +x gradlew
-        ls -la gradlew
+        chmod +x gradlew || true
+        ls -la gradlew || echo "gradlew not found"
     
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew || true
