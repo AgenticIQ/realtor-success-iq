@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val authViewModel: AuthViewModel = viewModel()
             val authState by authViewModel.authState.collectAsStateWithLifecycle()
+            val agentAuthState = authState
             
             RealtorSuccessTheme {
                 Surface(
@@ -55,10 +56,11 @@ class MainActivity : ComponentActivity() {
                     var isAdminMode by remember { mutableStateOf(false) }
                     val adminAuthViewModel: com.realtorsuccessiq.ui.admin.AdminAuthViewModel = viewModel()
                     val adminAuthState by adminAuthViewModel.authState.collectAsStateWithLifecycle()
+                    val brokerAuthState = adminAuthState
                     
                     when {
                         isAdminMode -> {
-                            when (adminAuthState) {
+                            when (brokerAuthState) {
                                 is com.realtorsuccessiq.ui.admin.AdminAuthState.Unauthenticated -> {
                                     com.realtorsuccessiq.ui.admin.AdminAuthScreen(
                                         onSignIn = { email, password ->
@@ -68,7 +70,7 @@ class MainActivity : ComponentActivity() {
                                 }
                                 is com.realtorsuccessiq.ui.admin.AdminAuthState.Authenticated -> {
                                     com.realtorsuccessiq.ui.admin.AdminMainScreen(
-                                        brokerageId = adminAuthState.brokerageId,
+                                        brokerageId = brokerAuthState.brokerageId,
                                         onSignOut = {
                                             adminAuthViewModel.signOut()
                                             isAdminMode = false
@@ -80,14 +82,14 @@ class MainActivity : ComponentActivity() {
                                         onSignIn = { email, password ->
                                             adminAuthViewModel.signIn(email, password)
                                         },
-                                        errorMessage = adminAuthState.message
+                                        errorMessage = brokerAuthState.message
                                     )
                                 }
                                 else -> {}
                             }
                         }
                         else -> {
-                            when (authState) {
+                            when (agentAuthState) {
                                 is com.realtorsuccessiq.ui.auth.AuthState.Loading -> {
                                     CircularProgressIndicator()
                                 }
@@ -128,7 +130,7 @@ class MainActivity : ComponentActivity() {
                                             onEmailSignIn = { email, password ->
                                                 authViewModel.signInWithEmail(email, password)
                                             },
-                                            errorMessage = authState.message
+                                            errorMessage = agentAuthState.message
                                         )
                                     }
                                 }
