@@ -9,13 +9,13 @@ import dagger.hilt.android.EntryPointAccessors
 @HiltAndroidApp
 class RealtorSuccessApplication : Application() {
     
-    private val dataInitializer: DataInitializer by lazy {
+    private val _dataInitializer: DataInitializer by lazy {
         EntryPointAccessors.fromApplication(
             applicationContext,
             RepositoryModule.DataInitializerEntryPoint::class.java
         ).dataInitializer()
     }
     
-    fun getDataInitializer(): DataInitializer = dataInitializer
+    fun getDataInitializer(): DataInitializer = _dataInitializer
 }
 
