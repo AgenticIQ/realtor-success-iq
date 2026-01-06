@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
     - name: Checkout code
@@ -58,4 +60,15 @@ jobs:
         path: app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
         if-no-files-found: warn
+
+    # Make updates easy: publish the newest Debug APK to a consistent GitHub Release ("nightly").
+    # The app can link users here so they always find the latest build in one place.
+    - name: Publish APK to GitHub Release (nightly)
+      if: github.event_name != 'pull_request'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: nightly
+        name: Nightly (auto)
+        prerelease: true
+        files: app/build/outputs/apk/debug/app-debug.apk
 

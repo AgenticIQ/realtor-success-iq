@@ -127,7 +127,7 @@ fun SettingsScreen(
                 )
                 OutlinedButton(
                     onClick = {
-                        val url = "https://github.com/AgenticIQ/realtor-success-iq/releases/latest"
+                        val url = "https://github.com/AgenticIQ/realtor-success-iq/releases/tag/nightly"
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                     },
                     modifier = Modifier.fillMaxWidth()
