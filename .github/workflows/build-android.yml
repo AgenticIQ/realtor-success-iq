@@ -50,7 +50,7 @@ jobs:
     # Optional but recommended for seamless in-app updates:
     # Provide a persistent signing key via GitHub Secrets so each Nightly APK can install over the previous one.
     - name: Decode signing keystore (optional)
-      if: github.event_name != 'pull_request' && secrets.RSIQ_KEYSTORE_B64 != ''
+      if: ${{ github.event_name != 'pull_request' && secrets.RSIQ_KEYSTORE_B64 != '' }}
       run: |
         mkdir -p signing
         echo "${{ secrets.RSIQ_KEYSTORE_B64 }}" | base64 --decode > signing/rsiq.keystore
