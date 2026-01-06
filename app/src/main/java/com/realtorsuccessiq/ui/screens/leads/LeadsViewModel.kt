@@ -18,14 +18,24 @@ class LeadsViewModel @Inject constructor(
     
     private val _leads = MutableStateFlow<List<com.realtorsuccessiq.data.model.Contact>>(emptyList())
     val leads: StateFlow<List<com.realtorsuccessiq.data.model.Contact>> = _leads.asStateFlow()
+
+    private val _focusTags = MutableStateFlow<List<String>>(emptyList())
+    private val _focusStages = MutableStateFlow<List<String>>(emptyList())
     
     val uiState: StateFlow<LeadsUiState> = combine(
         _searchQuery,
-        _leads
-    ) { query, leads ->
+        _leads,
+        _focusTags,
+        _focusStages
+    ) { query, leads, focusTags, focusStages ->
+        val filteredByCrm = leads.filter { c ->
+            val tagOk = focusTags.isEmpty() || c.getTagsList().any { it in focusTags }
+            val stageOk = focusStages.isEmpty() || (c.stage != null && focusStages.contains(c.stage))
+            tagOk && stageOk
+        }
         LeadsUiState(
             searchQuery = query,
-            leads = if (query.isBlank()) leads else leads.filter {
+            leads = if (query.isBlank()) filteredByCrm else filteredByCrm.filter {
                 it.name.contains(query, ignoreCase = true) ||
                 it.phone?.contains(query, ignoreCase = true) == true ||
                 it.email?.contains(query, ignoreCase = true) == true
@@ -41,6 +51,22 @@ class LeadsViewModel @Inject constructor(
         viewModelScope.launch {
             localRepository.getAllContacts().collect { contacts ->
                 _leads.value = contacts
+            }
+        }
+        viewModelScope.launch {
+            localRepository.getSettings().collect { settings ->
+                val tags = settings?.crmFocusTags
+                    ?.split(",")
+                    ?.map { it.trim() }
+                    ?.filter { it.isNotBlank() }
+                    .orEmpty()
+                val stages = settings?.crmFocusStages
+                    ?.split(",")
+                    ?.map { it.trim() }
+                    ?.filter { it.isNotBlank() }
+                    .orEmpty()
+                _focusTags.value = tags
+                _focusStages.value = stages
             }
         }
     }

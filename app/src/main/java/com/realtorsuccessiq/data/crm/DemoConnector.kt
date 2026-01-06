@@ -12,6 +12,7 @@ class DemoConnector : CrmConnector {
             phone = "+1234567890",
             email = "john.smith@example.com",
             tags = "Past Client,Top 50",
+            stage = "Past Client",
             segment = "A",
             lastContactedAt = System.currentTimeMillis() - 5 * 24 * 60 * 60 * 1000L,
             score = 85f
@@ -22,6 +23,7 @@ class DemoConnector : CrmConnector {
             phone = "+1234567891",
             email = "sarah.j@example.com",
             tags = "Hot,Builder Partner",
+            stage = "Hot Lead",
             segment = "A",
             lastContactedAt = System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000L,
             score = 90f
@@ -32,6 +34,7 @@ class DemoConnector : CrmConnector {
             phone = "+1234567892",
             email = "mike.davis@example.com",
             tags = "Past Client",
+            stage = "Nurture",
             segment = "B",
             lastContactedAt = System.currentTimeMillis() - 10 * 24 * 60 * 60 * 1000L,
             score = 70f
@@ -42,6 +45,7 @@ class DemoConnector : CrmConnector {
             phone = "+1234567893",
             email = "emily.chen@example.com",
             tags = "Top 50",
+            stage = "Active Search",
             segment = "A",
             lastContactedAt = System.currentTimeMillis() - 1 * 24 * 60 * 60 * 1000L,
             score = 88f
@@ -52,6 +56,7 @@ class DemoConnector : CrmConnector {
             phone = "+1234567894",
             email = "robert.w@example.com",
             tags = "",
+            stage = "Cold",
             segment = "C",
             lastContactedAt = System.currentTimeMillis() - 20 * 24 * 60 * 60 * 1000L,
             score = 50f

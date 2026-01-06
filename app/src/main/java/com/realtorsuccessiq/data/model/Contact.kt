@@ -10,6 +10,7 @@ data class Contact(
     val phone: String?,
     val email: String?,
     val tags: String = "", // comma-separated
+    val stage: String? = null, // CRM pipeline stage (if available)
     val segment: String = "C", // A, B, or C
     val lastContactedAt: Long? = null,
     val score: Float = 0f,

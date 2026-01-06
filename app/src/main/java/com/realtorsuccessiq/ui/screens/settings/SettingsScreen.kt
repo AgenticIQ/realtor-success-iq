@@ -1,19 +1,27 @@
 package com.realtorsuccessiq.ui.screens.settings
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.realtorsuccessiq.BuildConfig
 
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    var showTagsDialog by remember { mutableStateOf(false) }
+    var showStagesDialog by remember { mutableStateOf(false) }
     
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -60,6 +68,85 @@ fun SettingsScreen(
                 )
             }
         }
+
+        item {
+            Button(
+                onClick = { viewModel.syncNow() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Sync Now")
+            }
+        }
+
+        item {
+            Text(
+                text = "CRM Focus Filters",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = { showTagsDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        if (uiState.focusTags.isEmpty()) "Select Focus Tags"
+                        else "Focus Tags: ${uiState.focusTags.joinToString(", ")}"
+                    )
+                }
+                OutlinedButton(
+                    onClick = { showStagesDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        if (uiState.focusStages.isEmpty()) "Select Focus Stages"
+                        else "Focus Stages: ${uiState.focusStages.joinToString(", ")}"
+                    )
+                }
+                Text(
+                    text = "Tip: If you select tags/stages here, Leads + Today suggestions will only show matching contacts.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+
+        item {
+            Text(
+                text = "Updates (GitHub)",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "Current app: v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                OutlinedButton(
+                    onClick = {
+                        val url = "https://github.com/AgenticIQ/realtor-success-iq/releases/latest"
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Open Latest Release") }
+
+                OutlinedButton(
+                    onClick = {
+                        val url = "https://github.com/AgenticIQ/realtor-success-iq/actions/workflows/build-android.yml"
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Open Build Artifacts (Actions)") }
+
+                Text(
+                    text = "Android doesn’t allow a true “git pull” inside an installed app. This shortcut gets you to the latest APK quickly.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
         
         item {
             Text(
@@ -90,6 +177,26 @@ fun SettingsScreen(
                 onCheckedChange = { viewModel.setBiometricLock(it) }
             )
         }
+    }
+
+    if (showTagsDialog) {
+        MultiSelectDialog(
+            title = "Focus Tags",
+            options = uiState.availableTags,
+            selected = uiState.focusTags,
+            onDismiss = { showTagsDialog = false },
+            onApply = { viewModel.setFocusTags(it); showTagsDialog = false }
+        )
+    }
+
+    if (showStagesDialog) {
+        MultiSelectDialog(
+            title = "Focus Stages",
+            options = uiState.availableStages,
+            selected = uiState.focusStages,
+            onDismiss = { showStagesDialog = false },
+            onApply = { viewModel.setFocusStages(it); showStagesDialog = false }
+        )
     }
 }
 
@@ -163,5 +270,66 @@ fun ThemeSelector(
             )
         }
     }
+}
+
+@Composable
+private fun MultiSelectDialog(
+    title: String,
+    options: List<String>,
+    selected: List<String>,
+    onDismiss: () -> Unit,
+    onApply: (List<String>) -> Unit
+) {
+    var workingSelection by remember(selected, options) {
+        mutableStateOf(selected.toSet())
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            if (options.isEmpty()) {
+                Text("No options yet. Tap “Sync Now” to pull contacts, then try again.")
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(options.size) { idx ->
+                        val option = options[idx]
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = workingSelection.contains(option),
+                                onCheckedChange = { checked ->
+                                    workingSelection = if (checked) {
+                                        workingSelection + option
+                                    } else {
+                                        workingSelection - option
+                                    }
+                                }
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(option, style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onApply(workingSelection.toList().sorted()) }) {
+                Text("Apply")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 

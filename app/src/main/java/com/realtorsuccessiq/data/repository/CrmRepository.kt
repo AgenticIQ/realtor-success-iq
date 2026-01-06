@@ -39,8 +39,12 @@ class CrmRepository(
             val result = connector.syncDownContacts()
             when (result) {
                 is SyncResult.Success -> {
-                    // In a real implementation, we'd map CRM contacts to our Contact model
-                    // and insert them into localRepository
+                    // Minimal offline-first sync: fetch mapped contacts from connector and upsert into Room.
+                    // (For connectors that don't implement search, this will just insert nothing.)
+                    val contacts = connector.searchContacts("")
+                    if (contacts.isNotEmpty()) {
+                        localRepository.insertContacts(contacts)
+                    }
                     _syncStatus.value = SyncStatus.Connected
                 }
                 is SyncResult.RateLimited -> {

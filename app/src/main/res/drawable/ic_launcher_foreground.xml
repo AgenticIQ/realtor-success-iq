@@ -8,7 +8,18 @@
         android:fillColor="#16A34A"
         android:pathData="M54,27C40.2,27 29,38.2 29,52C29,65.8 40.2,77 54,77C67.8,77 79,65.8 79,52C79,38.2 67.8,27 54,27Z"/>
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,40L54,64M46,52L62,52"/>
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M54,38 L36,54 L36,70 L72,70 L72,54 Z"/>
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M50,70 L50,58 L58,58 L58,70"/>
 </vector>
 

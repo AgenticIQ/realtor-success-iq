@@ -20,22 +20,51 @@ class SettingsViewModel @Inject constructor(
     private val crmRepository: CrmRepository
 ) : ViewModel() {
     
-    val uiState: StateFlow<SettingsUiState> = localRepository.getSettings()
-        .map { settings ->
-            SettingsUiState(
-                demoMode = settings?.demoMode ?: true,
-                crmProvider = settings?.crmProvider ?: "demo",
-                crmApiKey = settings?.crmApiKey,
-                themePreset = settings?.themePreset ?: "success_minimal",
-                privacyMode = settings?.privacyMode ?: false,
-                biometricLock = settings?.biometricLockEnabled ?: false
-            )
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = SettingsUiState()
+    private val settingsFlow = localRepository.getSettings()
+    private val contactsFlow = localRepository.getAllContacts()
+
+    val uiState: StateFlow<SettingsUiState> = combine(settingsFlow, contactsFlow) { settings, contacts ->
+        val focusTags = settings?.crmFocusTags
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+        val focusStages = settings?.crmFocusStages
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+
+        val availableTags = contacts
+            .flatMap { it.getTagsList() }
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+
+        val availableStages = contacts
+            .mapNotNull { it.stage?.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+
+        SettingsUiState(
+            demoMode = settings?.demoMode ?: true,
+            crmProvider = settings?.crmProvider ?: "demo",
+            crmApiKey = settings?.crmApiKey,
+            themePreset = settings?.themePreset ?: "success_minimal",
+            privacyMode = settings?.privacyMode ?: false,
+            biometricLock = settings?.biometricLockEnabled ?: false,
+            focusTags = focusTags,
+            focusStages = focusStages,
+            availableTags = availableTags,
+            availableStages = availableStages
         )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = SettingsUiState()
+    )
     
     init {
         viewModelScope.launch {
@@ -76,6 +105,32 @@ class SettingsViewModel @Inject constructor(
             localRepository.saveSettings(settings.copy(crmApiKey = key))
         }
     }
+
+    fun setFocusTags(tags: List<String>) {
+        viewModelScope.launch {
+            val settings = localRepository.getSettingsSync() ?: UserSettings()
+            val value = tags.map { it.trim() }.filter { it.isNotBlank() }.distinct().joinToString(",")
+            localRepository.saveSettings(settings.copy(crmFocusTags = value))
+        }
+    }
+
+    fun setFocusStages(stages: List<String>) {
+        viewModelScope.launch {
+            val settings = localRepository.getSettingsSync() ?: UserSettings()
+            val value = stages.map { it.trim() }.filter { it.isNotBlank() }.distinct().joinToString(",")
+            localRepository.saveSettings(settings.copy(crmFocusStages = value))
+        }
+    }
+
+    fun syncNow() {
+        viewModelScope.launch {
+            crmRepository.validateConnection()
+            crmRepository.syncDownContacts()
+            crmRepository.syncDownTasks()
+            val settings = localRepository.getSettingsSync() ?: UserSettings()
+            localRepository.saveSettings(settings.copy(lastSyncAt = System.currentTimeMillis()))
+        }
+    }
     
     fun setThemePreset(preset: String) {
         viewModelScope.launch {
@@ -105,6 +160,10 @@ data class SettingsUiState(
     val crmApiKey: String? = null,
     val themePreset: String = "success_minimal",
     val privacyMode: Boolean = false,
-    val biometricLock: Boolean = false
+    val biometricLock: Boolean = false,
+    val focusTags: List<String> = emptyList(),
+    val focusStages: List<String> = emptyList(),
+    val availableTags: List<String> = emptyList(),
+    val availableStages: List<String> = emptyList()
 )
 

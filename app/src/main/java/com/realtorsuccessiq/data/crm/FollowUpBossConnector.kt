@@ -3,7 +3,7 @@ package com.realtorsuccessiq.data.crm
 import com.realtorsuccessiq.data.model.Contact
 import com.realtorsuccessiq.data.model.Task
 import com.realtorsuccessiq.data.network.FollowUpBossApi
-import com.realtorsuccessiq.data.network.FollowUpBossResponse
+import com.realtorsuccessiq.data.network.FollowUpBossPerson
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -56,9 +56,7 @@ class FollowUpBossConnector(
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
-                    // Map FUB people to Contact entities
-                    // This is a simplified mapping - adjust based on actual FUB API response
-                    SyncResult.Success(body.size)
+                    SyncResult.Success(body.people.size)
                 } else {
                     SyncResult.Success(0)
                 }
@@ -77,7 +75,7 @@ class FollowUpBossConnector(
             val response = api.getTasks(cursor)
             if (response.isSuccessful) {
                 val body = response.body()
-                SyncResult.Success(body?.size ?: 0)
+                SyncResult.Success(body?.tasks?.size ?: 0)
             } else if (response.code() == 429) {
                 SyncResult.RateLimited
             } else {
@@ -132,8 +130,15 @@ class FollowUpBossConnector(
             val response = api.getPeople()
             if (response.isSuccessful) {
                 val body = response.body()
-                // Filter and map to Contact entities
-                emptyList() // Simplified - implement full mapping
+                val people = body?.people.orEmpty()
+                people
+                    .mapNotNull { mapPersonToContact(it) }
+                    .filter {
+                        if (query.isBlank()) true
+                        else it.name.contains(query, ignoreCase = true) ||
+                            it.phone?.contains(query, ignoreCase = true) == true ||
+                            it.email?.contains(query, ignoreCase = true) == true
+                    }
             } else {
                 emptyList()
             }
@@ -144,16 +149,38 @@ class FollowUpBossConnector(
     
     override suspend fun getContactById(id: String): Contact? {
         return try {
-            val response = api.getPerson(id)
+            val fubId = id.removePrefix("fub-")
+            val response = api.getPerson(fubId)
             if (response.isSuccessful) {
-                // Map FUB person to Contact
-                null // Simplified - implement full mapping
+                val body = response.body()
+                if (body != null) mapPersonToContact(body) else null
             } else {
                 null
             }
         } catch (e: Exception) {
             null
         }
+    }
+
+    private fun mapPersonToContact(person: FollowUpBossPerson): Contact? {
+        val pid = person.id?.toString()?.takeIf { it.isNotBlank() } ?: return null
+        val name = person.name?.takeIf { it.isNotBlank() } ?: "Unknown"
+        val phone = person.phones?.firstOrNull()?.value
+        val email = person.emails?.firstOrNull()?.value
+        val tags = person.tags?.filterNotNull()?.joinToString(",") ?: ""
+        val stage = person.stage
+
+        return Contact(
+            id = "fub-$pid",
+            name = name,
+            phone = phone,
+            email = email,
+            tags = tags,
+            stage = stage,
+            segment = "C",
+            providerId = pid,
+            updatedAt = System.currentTimeMillis()
+        )
     }
 }
 

@@ -85,5 +85,16 @@ object Migrations {
             """)
         }
     }
+
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // Contacts: add stage column (nullable)
+            database.execSQL("ALTER TABLE contacts ADD COLUMN stage TEXT")
+
+            // User settings: add CRM focus filters
+            database.execSQL("ALTER TABLE user_settings ADD COLUMN crmFocusTags TEXT NOT NULL DEFAULT ''")
+            database.execSQL("ALTER TABLE user_settings ADD COLUMN crmFocusStages TEXT NOT NULL DEFAULT ''")
+        }
+    }
 }
 

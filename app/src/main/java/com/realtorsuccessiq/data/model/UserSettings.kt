@@ -24,6 +24,8 @@ data class UserSettings(
     val preferredPhoneAccountId: String? = null,
     val crmProvider: String = "demo", // demo, followupboss, salesforce
     val crmApiKey: String? = null,
+    val crmFocusTags: String = "", // comma-separated list of tags to focus on (filter)
+    val crmFocusStages: String = "", // comma-separated list of stages to focus on (filter)
     val lastSyncAt: Long? = null,
     val privacyMode: Boolean = false,
     val focusModeEnabled: Boolean = false,

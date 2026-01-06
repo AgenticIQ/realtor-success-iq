@@ -19,7 +19,7 @@ import com.realtorsuccessiq.data.model.*
         com.realtorsuccessiq.data.model.Prize::class,
         com.realtorsuccessiq.data.model.PrizeWinner::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

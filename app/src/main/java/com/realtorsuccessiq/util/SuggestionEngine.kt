@@ -16,7 +16,24 @@ class SuggestionEngine(
     private val localRepository: LocalRepository
 ) {
     suspend fun getTopSuggestions(limit: Int = 10): List<Suggestion> {
-        val contacts = localRepository.getAllContacts().first()
+        val settings = localRepository.getSettingsSync()
+        val focusTags = settings?.crmFocusTags
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+        val focusStages = settings?.crmFocusStages
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+
+        val contactsAll = localRepository.getAllContacts().first()
+        val contacts = contactsAll.filter { c ->
+            val tagOk = focusTags.isEmpty() || c.getTagsList().any { it in focusTags }
+            val stageOk = focusStages.isEmpty() || (c.stage != null && focusStages.contains(c.stage))
+            tagOk && stageOk
+        }
         val tasks = localRepository.getPendingTasks().first()
         val overdueTasks = localRepository.getOverdueTasks()
         val now = System.currentTimeMillis()
