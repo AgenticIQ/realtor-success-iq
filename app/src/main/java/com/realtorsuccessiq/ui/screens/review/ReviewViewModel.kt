@@ -19,23 +19,22 @@ class ReviewViewModel @Inject constructor(
     private val _whatWorked = MutableStateFlow("")
     private val _whatDidntWork = MutableStateFlow("")
     private val _nextWeekFocus = MutableStateFlow("")
-    
-    val uiState: StateFlow<ReviewUiState> = combine(
-        _whatWorked,
-        _whatDidntWork,
-        _nextWeekFocus,
+
+    private val logsFlow: Flow<List<com.realtorsuccessiq.data.model.ActivityLog>> = flow {
+        // Generate weekly logs snapshot periodically
+        while (true) {
+            val now = System.currentTimeMillis()
+            val weekStart = now - (7 * 24 * 60 * 60 * 1000L)
+            emit(localRepository.getLogsInRange(weekStart, now))
+            kotlinx.coroutines.delay(5000)
+        }
+    }
+
+    private val summaryFlow: Flow<String> = combine(
         localRepository.getSettings(),
         localRepository.getAllContacts(),
-        flow {
-            // Generate weekly summary
-            while (true) {
-                val now = System.currentTimeMillis()
-                val weekStart = now - (7 * 24 * 60 * 60 * 1000L)
-                emit(localRepository.getLogsInRange(weekStart, now))
-                kotlinx.coroutines.delay(5000)
-            }
-        }
-    ) { worked, didnt, focus, settings, contacts, logs ->
+        logsFlow
+    ) { settings, contacts, logs ->
         val focusTags = settings?.crmFocusTags
             ?.split(",")
             ?.map { it.trim() }
@@ -66,8 +65,16 @@ class ReviewViewModel @Inject constructor(
         val conversations = filteredLogs.count { it.type == ActivityType.CONVERSATION }
         val appointments = filteredLogs.count { it.type == ActivityType.APPT_SET }
         val listingAppts = filteredLogs.count { it.type == ActivityType.LISTING_APPT }
-        val summary = "This week you made $calls calls, had $conversations conversations, set $appointments appointments, and scheduled $listingAppts listing appointments."
 
+        "This week you made $calls calls, had $conversations conversations, set $appointments appointments, and scheduled $listingAppts listing appointments."
+    }
+    
+    val uiState: StateFlow<ReviewUiState> = combine(
+        _whatWorked,
+        _whatDidntWork,
+        _nextWeekFocus,
+        summaryFlow
+    ) { worked, didnt, focus, summary ->
         ReviewUiState(
             summary = summary,
             whatWorked = worked,
