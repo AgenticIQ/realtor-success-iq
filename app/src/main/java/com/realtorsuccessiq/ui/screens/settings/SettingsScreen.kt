@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.realtorsuccessiq.BuildConfig
+import com.realtorsuccessiq.updates.NightlyUpdateManager
 
 @Composable
 fun SettingsScreen(
@@ -22,6 +23,7 @@ fun SettingsScreen(
 
     var showTagsDialog by remember { mutableStateOf(false) }
     var showStagesDialog by remember { mutableStateOf(false) }
+    var updateStatus by remember { mutableStateOf<String?>(null) }
     
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -125,13 +127,31 @@ fun SettingsScreen(
                     text = "Current app: v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                     style = MaterialTheme.typography.bodySmall
                 )
+                Button(
+                    onClick = {
+                        updateStatus = "Starting download…"
+                        when (val result = NightlyUpdateManager.startDownloadAndInstall(context)) {
+                            is NightlyUpdateManager.Result.Started -> {
+                                updateStatus = "Downloading… you’ll get an install prompt when it finishes."
+                            }
+                            is NightlyUpdateManager.Result.NeedsUnknownSourcesPermission -> {
+                                updateStatus = "Enable “Install unknown apps” for RealtorSuccessIQ, then tap again."
+                            }
+                            is NightlyUpdateManager.Result.Error -> {
+                                updateStatus = "Update failed: ${result.message}"
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Download & Install Latest (Nightly)") }
+
                 OutlinedButton(
                     onClick = {
                         val url = "https://github.com/AgenticIQ/realtor-success-iq/releases/tag/nightly"
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                     },
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("Open Latest Release") }
+                ) { Text("Open Nightly Page") }
 
                 OutlinedButton(
                     onClick = {
@@ -142,9 +162,16 @@ fun SettingsScreen(
                 ) { Text("Open Build Artifacts (Actions)") }
 
                 Text(
-                    text = "Android doesn’t allow a true “git pull” inside an installed app. This shortcut gets you to the latest APK quickly.",
+                    text = "Android won’t allow silent auto-updates for APK installs. This button downloads the newest build and opens the installer prompt.",
                     style = MaterialTheme.typography.bodySmall
                 )
+
+                if (updateStatus != null) {
+                    Text(
+                        text = updateStatus!!,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
         
