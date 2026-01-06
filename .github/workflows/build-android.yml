@@ -50,14 +50,19 @@ jobs:
     # Optional but recommended for seamless in-app updates:
     # Provide a persistent signing key via GitHub Secrets so each Nightly APK can install over the previous one.
     - name: Decode signing keystore (optional)
-      if: ${{ github.event_name != 'pull_request' && secrets.RSIQ_KEYSTORE_B64 != '' }}
+      if: ${{ github.event_name != 'pull_request' }}
       run: |
-        mkdir -p signing
-        echo "${{ secrets.RSIQ_KEYSTORE_B64 }}" | base64 --decode > signing/rsiq.keystore
-        echo "RSIQ_KEYSTORE_PATH=${GITHUB_WORKSPACE}/signing/rsiq.keystore" >> $GITHUB_ENV
-        echo "RSIQ_KEYSTORE_PASSWORD=${{ secrets.RSIQ_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
-        echo "RSIQ_KEY_ALIAS=${{ secrets.RSIQ_KEY_ALIAS }}" >> $GITHUB_ENV
-        echo "RSIQ_KEY_PASSWORD=${{ secrets.RSIQ_KEY_PASSWORD }}" >> $GITHUB_ENV
+        if [ -n "${{ secrets.RSIQ_KEYSTORE_B64 }}" ]; then
+          mkdir -p signing
+          echo "${{ secrets.RSIQ_KEYSTORE_B64 }}" | base64 --decode > signing/rsiq.keystore
+          echo "RSIQ_KEYSTORE_PATH=${GITHUB_WORKSPACE}/signing/rsiq.keystore" >> $GITHUB_ENV
+          echo "RSIQ_KEYSTORE_PASSWORD=${{ secrets.RSIQ_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "RSIQ_KEY_ALIAS=${{ secrets.RSIQ_KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "RSIQ_KEY_PASSWORD=${{ secrets.RSIQ_KEY_PASSWORD }}" >> $GITHUB_ENV
+          echo "Signing keystore configured."
+        else
+          echo "No signing secrets provided; Nightly will be unsigned by a stable key and may not install as an update."
+        fi
     
     - name: Build APK with verbose logging
       run: |
