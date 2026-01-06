@@ -47,9 +47,10 @@ jobs:
         echo "=== App build.gradle exists ==="
         test -f app/build.gradle && echo "YES" || echo "NO"
 
-    # Optional but recommended for seamless in-app updates:
-    # Provide a persistent signing key via GitHub Secrets so each Nightly APK can install over the previous one.
-    - name: Decode signing keystore (optional)
+    # Signing:
+    # - If you provide GitHub Secrets (RSIQ_KEYSTORE_*), Nightly will be signed with a stable key and can install as an UPDATE.
+    # - If you don't, we generate a temporary signing key in CI so the APK is still installable (but updates may require uninstall).
+    - name: Configure signing (stable if secrets provided, otherwise temporary)
       if: ${{ github.event_name != 'pull_request' }}
       run: |
         if [ -n "${{ secrets.RSIQ_KEYSTORE_B64 }}" ]; then
@@ -61,7 +62,22 @@ jobs:
           echo "RSIQ_KEY_PASSWORD=${{ secrets.RSIQ_KEY_PASSWORD }}" >> $GITHUB_ENV
           echo "Signing keystore configured."
         else
-          echo "No signing secrets provided; Nightly will be unsigned by a stable key and may not install as an update."
+          echo "No signing secrets provided; generating temporary signing key for an installable APK (updates may require uninstall)."
+          mkdir -p signing
+          PASS="temp-${{ github.run_number }}-${{ github.run_attempt }}"
+          keytool -genkeypair -v \
+            -keystore signing/rsiq-temp.keystore \
+            -storepass "$PASS" \
+            -keypass "$PASS" \
+            -alias rsiq \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 3650 \
+            -dname "CN=RealtorSuccessIQ Nightly,O=RealtorSuccessIQ,C=US"
+          echo "RSIQ_KEYSTORE_PATH=${GITHUB_WORKSPACE}/signing/rsiq-temp.keystore" >> $GITHUB_ENV
+          echo "RSIQ_KEYSTORE_PASSWORD=$PASS" >> $GITHUB_ENV
+          echo "RSIQ_KEY_ALIAS=rsiq" >> $GITHUB_ENV
+          echo "RSIQ_KEY_PASSWORD=$PASS" >> $GITHUB_ENV
         fi
     
     - name: Build APK with verbose logging
