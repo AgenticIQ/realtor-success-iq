@@ -145,22 +145,6 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("Download & Install Latest (Nightly)") }
 
-                OutlinedButton(
-                    onClick = {
-                        val url = "https://github.com/AgenticIQ/realtor-success-iq/releases/tag/nightly"
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("Open Nightly Page") }
-
-                OutlinedButton(
-                    onClick = {
-                        val url = "https://github.com/AgenticIQ/realtor-success-iq/actions/workflows/build-android.yml"
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("Open Build Artifacts (Actions)") }
-
                 Text(
                     text = "Android won’t allow silent auto-updates for APK installs. This button downloads the newest build and opens the installer prompt.",
                     style = MaterialTheme.typography.bodySmall
