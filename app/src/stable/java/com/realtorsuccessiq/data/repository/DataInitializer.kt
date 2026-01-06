@@ -14,13 +14,13 @@ class DataInitializer(
         if (settings == null) {
             // First launch - initialize with defaults
             localRepository.saveSettings(UserSettings())
-            
+
             // Load demo contacts if in demo mode
             val demoConnector = DemoConnector()
             val mockContacts = demoConnector.getMockContacts()
             localRepository.insertContacts(mockContacts)
         }
-        
+
         // Initialize demo brokerage for testing (if admin repository is available)
         try {
             adminRepository?.let { repo ->
@@ -35,7 +35,7 @@ class DataInitializer(
                         accentColor = 0xFFD4AF37
                     )
                     repo.saveBrokerage(demoBrokerage)
-                    
+
                     // Add demo agents
                     val demoAgents = listOf(
                         Agent(
@@ -71,4 +71,5 @@ class DataInitializer(
         }
     }
 }
+
 
