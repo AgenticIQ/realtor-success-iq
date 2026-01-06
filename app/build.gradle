@@ -14,8 +14,10 @@ android {
         applicationId "com.realtorsuccessiq"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0.0"
+        def ciVersionCode = project.hasProperty("ciVersionCode") ? project.property("ciVersionCode").toInteger() : 1
+        def ciVersionName = project.hasProperty("ciVersionName") ? project.property("ciVersionName").toString() : "1.0.0"
+        versionCode ciVersionCode
+        versionName ciVersionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -23,10 +25,35 @@ android {
         }
     }
 
+    def signingEnabled = System.getenv("RSIQ_KEYSTORE_PATH") != null &&
+            System.getenv("RSIQ_KEYSTORE_PASSWORD") != null &&
+            System.getenv("RSIQ_KEY_ALIAS") != null &&
+            System.getenv("RSIQ_KEY_PASSWORD") != null
+
+    signingConfigs {
+        nightly {
+            if (signingEnabled) {
+                storeFile file(System.getenv("RSIQ_KEYSTORE_PATH"))
+                storePassword System.getenv("RSIQ_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("RSIQ_KEY_ALIAS")
+                keyPassword System.getenv("RSIQ_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            // Enable seamless "update install" if CI provides a stable signing key.
+            if (signingEnabled) {
+                signingConfig signingConfigs.nightly
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (signingEnabled) {
+                signingConfig signingConfigs.nightly
+            }
         }
     }
     

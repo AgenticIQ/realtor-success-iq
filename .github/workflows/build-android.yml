@@ -46,18 +46,36 @@ jobs:
         cat build.gradle || echo "build.gradle not found"
         echo "=== App build.gradle exists ==="
         test -f app/build.gradle && echo "YES" || echo "NO"
+
+    # Optional but recommended for seamless in-app updates:
+    # Provide a persistent signing key via GitHub Secrets so each Nightly APK can install over the previous one.
+    - name: Decode signing keystore (optional)
+      if: github.event_name != 'pull_request' && secrets.RSIQ_KEYSTORE_B64 != ''
+      run: |
+        mkdir -p signing
+        echo "${{ secrets.RSIQ_KEYSTORE_B64 }}" | base64 --decode > signing/rsiq.keystore
+        echo "RSIQ_KEYSTORE_PATH=${GITHUB_WORKSPACE}/signing/rsiq.keystore" >> $GITHUB_ENV
+        echo "RSIQ_KEYSTORE_PASSWORD=${{ secrets.RSIQ_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+        echo "RSIQ_KEY_ALIAS=${{ secrets.RSIQ_KEY_ALIAS }}" >> $GITHUB_ENV
+        echo "RSIQ_KEY_PASSWORD=${{ secrets.RSIQ_KEY_PASSWORD }}" >> $GITHUB_ENV
     
     - name: Build APK with verbose logging
-      run: gradle assembleDebug --stacktrace --info --warning-mode=all --no-daemon
+      run: |
+        gradle assembleRelease -PciVersionCode=${{ github.run_number }} -PciVersionName=1.0.0-nightly.${{ github.run_number }} --stacktrace --info --warning-mode=all --no-daemon
       env:
         ANDROID_HOME: ${{ env.ANDROID_HOME }}
         ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
     
+    - name: Prepare Nightly APK asset
+      run: |
+        mkdir -p dist
+        cp app/build/outputs/apk/release/app-release.apk dist/realtorsuccessiq-nightly.apk
+
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: realtorsuccessiq-nightly-apk
+        path: dist/realtorsuccessiq-nightly.apk
         retention-days: 30
         if-no-files-found: warn
 
@@ -70,5 +88,5 @@ jobs:
         tag_name: nightly
         name: Nightly (auto)
         prerelease: true
-        files: app/build/outputs/apk/debug/app-debug.apk
+        files: dist/realtorsuccessiq-nightly.apk
 
