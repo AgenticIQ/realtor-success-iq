@@ -1,0 +1,31 @@
+{
+  "project_info": {
+    "project_number": "123456789",
+    "project_id": "realtor-success-iq-demo",
+    "storage_bucket": "realtor-success-iq-demo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123456789:android:placeholder-next",
+        "android_client_info": {
+          "package_name": "com.realtorsuccessiq.next"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyPlaceholderKeyForDemoMode"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+
+
