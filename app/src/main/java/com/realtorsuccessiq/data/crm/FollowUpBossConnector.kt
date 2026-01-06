@@ -175,8 +175,10 @@ class FollowUpBossConnector(
 
         // Safety limit to prevent infinite loops if cursor repeats
         val seenCursors = mutableSetOf<String>()
+        var pages = 0
 
-        repeat(200) { // up to 200 pages (typically plenty)
+        while (pages < 200) {
+            pages++
             val response = api.getPeople(cursor)
             if (response.code() == 429) throw RateLimitException()
             if (!response.isSuccessful) {
