@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.realtorsuccessiq.BuildConfig
 import com.realtorsuccessiq.updates.NightlyUpdateManager
+import com.realtorsuccessiq.data.repository.SyncStatus
 
 @Composable
 fun SettingsScreen(
@@ -156,6 +157,39 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
+            }
+        }
+
+        item {
+            Text(
+                text = "Sync Status",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
+        item {
+            val statusText = when (uiState.syncStatus) {
+                is SyncStatus.Connected -> "Connected"
+                is SyncStatus.Syncing -> "Syncing…"
+                is SyncStatus.RateLimited -> "Rate limited"
+                is SyncStatus.Error -> "Error: ${(uiState.syncStatus as SyncStatus.Error).message}"
+                is SyncStatus.Disconnected -> "Disconnected"
+            }
+            Text(text = statusText, style = MaterialTheme.typography.bodyMedium)
+
+            val lastSync = uiState.lastSyncAt
+            if (lastSync != null) {
+                Text(
+                    text = "Last sync: ${java.text.SimpleDateFormat("MMM d, h:mm a", java.util.Locale.getDefault()).format(java.util.Date(lastSync))}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                Text(
+                    text = "Last sync: never",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
         

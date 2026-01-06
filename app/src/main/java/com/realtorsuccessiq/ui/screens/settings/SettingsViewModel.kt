@@ -23,7 +23,11 @@ class SettingsViewModel @Inject constructor(
     private val settingsFlow = localRepository.getSettings()
     private val contactsFlow = localRepository.getAllContacts()
 
-    val uiState: StateFlow<SettingsUiState> = combine(settingsFlow, contactsFlow) { settings, contacts ->
+    val uiState: StateFlow<SettingsUiState> = combine(
+        settingsFlow,
+        contactsFlow,
+        crmRepository.syncStatus
+    ) { settings, contacts, syncStatus ->
         val focusTags = settings?.crmFocusTags
             ?.split(",")
             ?.map { it.trim() }
@@ -58,7 +62,9 @@ class SettingsViewModel @Inject constructor(
             focusTags = focusTags,
             focusStages = focusStages,
             availableTags = availableTags,
-            availableStages = availableStages
+            availableStages = availableStages,
+            lastSyncAt = settings?.lastSyncAt,
+            syncStatus = syncStatus
         )
     }.stateIn(
         scope = viewModelScope,
@@ -164,6 +170,8 @@ data class SettingsUiState(
     val focusTags: List<String> = emptyList(),
     val focusStages: List<String> = emptyList(),
     val availableTags: List<String> = emptyList(),
-    val availableStages: List<String> = emptyList()
+    val availableStages: List<String> = emptyList(),
+    val lastSyncAt: Long? = null,
+    val syncStatus: com.realtorsuccessiq.data.repository.SyncStatus = com.realtorsuccessiq.data.repository.SyncStatus.Disconnected
 )
 

@@ -14,7 +14,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -69,18 +68,31 @@ class TodayViewModel @Inject constructor(
         }
         
         viewModelScope.launch {
-            // Load suggestions
-            val suggestions = suggestionEngine.getTopSuggestions(10)
-            _uiState.value = _uiState.value.copy(suggestions = suggestions)
+            // Keep suggestions fresh as contacts/settings change (including focus filters).
+            combine(
+                localRepository.getAllContacts(),
+                localRepository.getSettings()
+            ) { _, _ ->
+                // Recompute suggestions whenever either changes.
+                Unit
+            }
+                .debounce(300)
+                .collect {
+                    val suggestions = suggestionEngine.getTopSuggestions(10)
+                    _uiState.value = _uiState.value.copy(suggestions = suggestions)
+                }
         }
-        
+
         viewModelScope.launch {
-            // Load streaks
-            val streaks = gamificationEngine.calculateStreaks()
-            _uiState.value = _uiState.value.copy(
-                leadGenStreak = streaks.leadGenStreak,
-                callStreak = streaks.callStreak
-            )
+            // Keep streaks fresh
+            while (true) {
+                val streaks = gamificationEngine.calculateStreaks()
+                _uiState.value = _uiState.value.copy(
+                    leadGenStreak = streaks.leadGenStreak,
+                    callStreak = streaks.callStreak
+                )
+                delay(5000)
+            }
         }
         
         // Timer

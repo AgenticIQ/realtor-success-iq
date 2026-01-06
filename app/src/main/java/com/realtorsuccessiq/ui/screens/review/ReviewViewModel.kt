@@ -24,23 +24,50 @@ class ReviewViewModel @Inject constructor(
         _whatWorked,
         _whatDidntWork,
         _nextWeekFocus,
+        localRepository.getSettings(),
+        localRepository.getAllContacts(),
         flow {
             // Generate weekly summary
             while (true) {
                 val now = System.currentTimeMillis()
                 val weekStart = now - (7 * 24 * 60 * 60 * 1000L)
-                val logs = localRepository.getLogsInRange(weekStart, now)
-                
-                val calls = logs.count { it.type == ActivityType.CALL_ATTEMPT || it.type == ActivityType.CONVERSATION }
-                val conversations = logs.count { it.type == ActivityType.CONVERSATION }
-                val appointments = logs.count { it.type == ActivityType.APPT_SET }
-                val listingAppts = logs.count { it.type == ActivityType.LISTING_APPT }
-                
-                emit("This week you made $calls calls, had $conversations conversations, set $appointments appointments, and scheduled $listingAppts listing appointments.")
+                emit(localRepository.getLogsInRange(weekStart, now))
                 kotlinx.coroutines.delay(5000)
             }
         }
-    ) { worked, didnt, focus, summary ->
+    ) { worked, didnt, focus, settings, contacts, logs ->
+        val focusTags = settings?.crmFocusTags
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+        val focusStages = settings?.crmFocusStages
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+
+        val allowedPersonIds = contacts
+            .filter { c ->
+                val tagOk = focusTags.isEmpty() || c.getTagsList().any { it in focusTags }
+                val stageOk = focusStages.isEmpty() || (c.stage != null && focusStages.contains(c.stage))
+                tagOk && stageOk
+            }
+            .map { it.id }
+            .toSet()
+
+        val filteredLogs = if (focusTags.isEmpty() && focusStages.isEmpty()) {
+            logs
+        } else {
+            logs.filter { it.personId == null || (it.personId in allowedPersonIds) }
+        }
+
+        val calls = filteredLogs.count { it.type == ActivityType.CALL_ATTEMPT || it.type == ActivityType.CONVERSATION }
+        val conversations = filteredLogs.count { it.type == ActivityType.CONVERSATION }
+        val appointments = filteredLogs.count { it.type == ActivityType.APPT_SET }
+        val listingAppts = filteredLogs.count { it.type == ActivityType.LISTING_APPT }
+        val summary = "This week you made $calls calls, had $conversations conversations, set $appointments appointments, and scheduled $listingAppts listing appointments."
+
         ReviewUiState(
             summary = summary,
             whatWorked = worked,

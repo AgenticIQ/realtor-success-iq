@@ -19,8 +19,24 @@ class CrmRepository(
             _syncStatus.value = SyncStatus.Disconnected
         }
     }
+
+    private suspend fun ensureConnectorConfigured() {
+        if (currentConnector != null) return
+        val settings = localRepository.getSettingsSync()
+        val connector: CrmConnector? = when (settings?.crmProvider ?: "demo") {
+            "demo" -> DemoConnector()
+            "followupboss" -> {
+                val key = settings?.crmApiKey
+                if (!key.isNullOrBlank()) FollowUpBossConnector(key) else null
+            }
+            "salesforce" -> SalesforceConnector()
+            else -> null
+        }
+        setConnector(connector)
+    }
     
     suspend fun validateConnection(): ConnectionStatus {
+        ensureConnectorConfigured()
         val connector = currentConnector ?: return ConnectionStatus.Disconnected
         val status = connector.validateConnection()
         _syncStatus.value = when (status) {
@@ -32,6 +48,7 @@ class CrmRepository(
     }
     
     suspend fun syncDownContacts(): SyncResult {
+        ensureConnectorConfigured()
         val connector = currentConnector ?: return SyncResult.Error("No CRM connector configured")
         _syncStatus.value = SyncStatus.Syncing
         
@@ -62,6 +79,7 @@ class CrmRepository(
     }
     
     suspend fun syncDownTasks(): SyncResult {
+        ensureConnectorConfigured()
         val connector = currentConnector ?: return SyncResult.Error("No CRM connector configured")
         _syncStatus.value = SyncStatus.Syncing
         
@@ -86,21 +104,25 @@ class CrmRepository(
     }
     
     suspend fun pushCallLog(callLog: Map<String, Any>): PushResult {
+        ensureConnectorConfigured()
         val connector = currentConnector ?: return PushResult.Error("No CRM connector configured")
         return connector.pushCallLog(callLog)
     }
     
     suspend fun pushNote(note: Map<String, Any>): PushResult {
+        ensureConnectorConfigured()
         val connector = currentConnector ?: return PushResult.Error("No CRM connector configured")
         return connector.pushNote(note)
     }
     
     suspend fun pushTask(task: Map<String, Any>): PushResult {
+        ensureConnectorConfigured()
         val connector = currentConnector ?: return PushResult.Error("No CRM connector configured")
         return connector.pushTask(task)
     }
     
     suspend fun searchContacts(query: String): List<Contact> {
+        ensureConnectorConfigured()
         val connector = currentConnector ?: return emptyList()
         return connector.searchContacts(query)
     }
