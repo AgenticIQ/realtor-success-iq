@@ -32,7 +32,15 @@ fun MainScreen() {
             TopAppBar(
                 title = { Text(getScreenTitle(currentDestination?.route)) },
                 actions = {
-                    // Sync status chip will go here
+                    AssistChip(
+                        onClick = {},
+                        label = {
+                            Text(
+                                text = "${BuildConfig.FLAVOR.uppercase()} • ${BuildConfig.VERSION_NAME}",
+                                maxLines = 1
+                            )
+                        }
+                    )
                 }
             )
         },

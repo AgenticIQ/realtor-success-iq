@@ -70,5 +70,15 @@ object ThemePresets {
     )
     
     val all = listOf(SuccessMinimal, TrustBlue, ModernCharcoal, Coastal)
+
+    fun fromKey(key: String?): ThemePreset {
+        return when (key?.trim()?.lowercase()) {
+            "trust_blue" -> TrustBlue
+            "modern_charcoal" -> ModernCharcoal
+            "coastal" -> Coastal
+            "success_minimal" -> SuccessMinimal
+            else -> SuccessMinimal
+        }
+    }
 }
 

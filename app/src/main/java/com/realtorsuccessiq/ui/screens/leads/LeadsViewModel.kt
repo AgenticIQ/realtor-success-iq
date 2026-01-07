@@ -35,13 +35,18 @@ class LeadsViewModel @Inject constructor(
             val stageOk = focusStagesNorm.isEmpty() || (c.stage?.trim()?.lowercase() in focusStagesNorm)
             tagOk && stageOk
         }
-        LeadsUiState(
-            searchQuery = query,
-            leads = if (query.isBlank()) filteredByCrm else filteredByCrm.filter {
-                it.name.contains(query, ignoreCase = true) ||
+        val filteredBySearch = if (query.isBlank()) filteredByCrm else filteredByCrm.filter {
+            it.name.contains(query, ignoreCase = true) ||
                 it.phone?.contains(query, ignoreCase = true) == true ||
                 it.email?.contains(query, ignoreCase = true) == true
-            }
+        }
+        LeadsUiState(
+            searchQuery = query,
+            leads = filteredBySearch,
+            focusTags = focusTags,
+            focusStages = focusStages,
+            totalCount = leads.size,
+            filteredCount = filteredBySearch.size
         )
     }.stateIn(
         scope = viewModelScope,
@@ -80,6 +85,10 @@ class LeadsViewModel @Inject constructor(
 
 data class LeadsUiState(
     val searchQuery: String = "",
-    val leads: List<com.realtorsuccessiq.data.model.Contact> = emptyList()
+    val leads: List<com.realtorsuccessiq.data.model.Contact> = emptyList(),
+    val focusTags: List<String> = emptyList(),
+    val focusStages: List<String> = emptyList(),
+    val totalCount: Int = 0,
+    val filteredCount: Int = 0
 )
 

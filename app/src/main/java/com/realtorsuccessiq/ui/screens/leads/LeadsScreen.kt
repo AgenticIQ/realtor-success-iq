@@ -17,13 +17,38 @@ fun LeadsScreen(
     val uiState by viewModel.uiState.collectAsState()
     
     Column(modifier = Modifier.fillMaxSize()) {
+        // Active filters + counts
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "Showing ${uiState.filteredCount} of ${uiState.totalCount}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (uiState.focusTags.isNotEmpty() || uiState.focusStages.isNotEmpty()) {
+                Text(
+                    text = buildString {
+                        if (uiState.focusTags.isNotEmpty()) append("Tags: ${uiState.focusTags.joinToString(", ")}")
+                        if (uiState.focusTags.isNotEmpty() && uiState.focusStages.isNotEmpty()) append(" • ")
+                        if (uiState.focusStages.isNotEmpty()) append("Stages: ${uiState.focusStages.joinToString(", ")}")
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
         // Search bar
         OutlinedTextField(
             value = uiState.searchQuery,
             onValueChange = { viewModel.updateSearchQuery(it) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             placeholder = { Text("Search leads...") },
             singleLine = true
         )

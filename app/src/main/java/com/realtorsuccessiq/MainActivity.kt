@@ -19,11 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.realtorsuccessiq.data.repository.DataInitializer
 import com.realtorsuccessiq.ui.auth.AuthViewModel
 import com.realtorsuccessiq.ui.auth.AuthScreen
 import com.realtorsuccessiq.ui.navigation.MainScreen
 import com.realtorsuccessiq.ui.theme.RealtorSuccessTheme
+import com.realtorsuccessiq.ui.theme.ThemePresets
+import com.realtorsuccessiq.data.repository.LocalRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +33,8 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var localRepository: LocalRepository
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,8 +49,20 @@ class MainActivity : ComponentActivity() {
             val authViewModel: AuthViewModel = viewModel()
             val authState by authViewModel.authState.collectAsStateWithLifecycle()
             val agentAuthState = authState
-            
-            RealtorSuccessTheme {
+
+            val settings by localRepository.getSettings().collectAsStateWithLifecycle(initialValue = null)
+            val themePreset = ThemePresets.fromKey(settings?.themePreset)
+            val darkTheme = when (settings?.themeMode?.trim()?.lowercase()) {
+                "light" -> false
+                "dark" -> true
+                else -> androidx.compose.foundation.isSystemInDarkTheme()
+            }
+
+            RealtorSuccessTheme(
+                darkTheme = darkTheme,
+                dynamicColor = false,
+                themePreset = themePreset
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

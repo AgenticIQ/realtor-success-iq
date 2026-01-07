@@ -46,6 +46,11 @@ fun SettingsScreen(
                 text = "Settings",
                 style = MaterialTheme.typography.headlineMedium
             )
+            Text(
+                text = "Build: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) • ${BuildConfig.FLAVOR}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         item {
@@ -228,7 +233,7 @@ fun SettingsScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "Current app: v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                    text = "Current app: v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) • ${BuildConfig.FLAVOR}",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Button(
@@ -247,7 +252,12 @@ fun SettingsScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("Download & Install Latest (Nightly)") }
+                ) {
+                    Text(
+                        if (BuildConfig.FLAVOR == "next") "Download & Install Latest (Nightly NEXT)"
+                        else "Download & Install Latest (Nightly)"
+                    )
+                }
 
                 Text(
                     text = "Android won’t allow silent auto-updates for APK installs. This button downloads the newest build and opens the installer prompt.",
