@@ -9,7 +9,11 @@ interface FollowUpBossApi {
     suspend fun getIdentity(): Response<FollowUpBossIdentity>
     
     @GET("people")
-    suspend fun getPeople(@Query("cursor") cursor: String? = null): Response<FollowUpBossPeopleResponse>
+    suspend fun getPeople(
+        @Query("cursor") cursor: String? = null,
+        @Query("fields") fields: String? = null,
+        @Query("limit") limit: Int? = null
+    ): Response<FollowUpBossPeopleResponse>
     
     @GET("people/{id}")
     suspend fun getPerson(@Path("id") id: String): Response<FollowUpBossPerson>

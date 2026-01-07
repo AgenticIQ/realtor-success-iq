@@ -15,6 +15,8 @@ class FollowUpBossConnector(
     private val apiKey: String,
     private val baseUrl: String = "https://api.followupboss.com/v1/"
 ) : CrmConnector {
+
+    private val peopleFields = "id,name,phones,emails,tags,stage"
     
     private val client = OkHttpClient.Builder()
         .addInterceptor { chain ->
@@ -179,7 +181,7 @@ class FollowUpBossConnector(
 
         while (pages < 200) {
             pages++
-            val response = api.getPeople(cursor)
+            val response = api.getPeople(cursor = cursor, fields = peopleFields, limit = 200)
             if (response.code() == 429) throw RateLimitException()
             if (!response.isSuccessful) {
                 throw RuntimeException("Failed to fetch people: ${response.code()}")
