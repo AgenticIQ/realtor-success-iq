@@ -3,6 +3,7 @@ package com.realtorsuccessiq.data.crm
 import com.realtorsuccessiq.data.model.Contact
 import com.realtorsuccessiq.data.model.Task
 import com.realtorsuccessiq.data.network.FollowUpBossApi
+import com.realtorsuccessiq.data.network.FollowUpBossTag
 import com.realtorsuccessiq.data.network.FollowUpBossPerson
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
@@ -145,6 +146,28 @@ class FollowUpBossConnector(
             }
         } catch (e: Exception) {
             null
+        }
+    }
+
+    override suspend fun fetchAllTags(): List<String> {
+        // Prefer the tags catalog endpoint so users see all tags, not just tags on a subset of contacts.
+        return try {
+            val wrapped = api.getTagsWrapped()
+            if (wrapped.isSuccessful) {
+                wrapped.body()
+                    ?.items
+                    .orEmpty()
+                    .mapNotNull { it.name?.trim() }
+                    .filter { it.isNotBlank() }
+                    .distinct()
+            } else {
+                // Fallback: sometimes the endpoint returns a raw array
+                val raw = api.getTagsList()
+                if (!raw.isSuccessful) emptyList()
+                else raw.body().orEmpty().mapNotNull { it.name?.trim() }.filter { it.isNotBlank() }.distinct()
+            }
+        } catch (_: Exception) {
+            emptyList()
         }
     }
 

@@ -447,6 +447,12 @@ private fun MultiSelectDialog(
     var workingSelection by remember(selected, options) {
         mutableStateOf(selected.toSet())
     }
+    var query by remember { mutableStateOf("") }
+    val filteredOptions = remember(options, query) {
+        val q = query.trim()
+        if (q.isBlank()) options
+        else options.filter { it.contains(q, ignoreCase = true) }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -455,30 +461,39 @@ private fun MultiSelectDialog(
             if (options.isEmpty()) {
                 Text("No options yet. Tap “Sync Now” to pull contacts, then try again.")
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    items(options.size) { idx ->
-                        val option = options[idx]
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = workingSelection.contains(option),
-                                onCheckedChange = { checked ->
-                                    workingSelection = if (checked) {
-                                        workingSelection + option
-                                    } else {
-                                        workingSelection - option
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text("Search") }
+                    )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        items(filteredOptions.size) { idx ->
+                            val option = filteredOptions[idx]
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = workingSelection.contains(option),
+                                    onCheckedChange = { checked ->
+                                        workingSelection = if (checked) {
+                                            workingSelection + option
+                                        } else {
+                                            workingSelection - option
+                                        }
                                     }
-                                }
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(option, style = MaterialTheme.typography.bodyLarge)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(option, style = MaterialTheme.typography.bodyLarge)
+                            }
                         }
                     }
                 }

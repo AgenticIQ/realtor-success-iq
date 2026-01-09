@@ -29,5 +29,15 @@ interface CrmConnector {
     suspend fun pushTask(task: Map<String, Any>): PushResult
     suspend fun searchContacts(query: String): List<Contact>
     suspend fun getContactById(id: String): Contact?
+
+    /**
+     * Optional: return the full CRM tag catalog (not just tags present on synced contacts).
+     */
+    suspend fun fetchAllTags(): List<String> = emptyList()
+
+    /**
+     * Optional: return the full CRM stage/pipeline catalog.
+     */
+    suspend fun fetchAllStages(): List<String> = emptyList()
 }
 

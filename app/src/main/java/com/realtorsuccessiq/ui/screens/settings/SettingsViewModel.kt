@@ -23,11 +23,16 @@ class SettingsViewModel @Inject constructor(
     private val settingsFlow = localRepository.getSettings()
     private val contactsFlow = localRepository.getAllContacts()
 
+    private val crmTagsFlow = MutableStateFlow<List<String>>(emptyList())
+    private val crmStagesFlow = MutableStateFlow<List<String>>(emptyList())
+
     val uiState: StateFlow<SettingsUiState> = combine(
         settingsFlow,
         contactsFlow,
+        crmTagsFlow,
+        crmStagesFlow,
         crmRepository.syncStatus
-    ) { settings, contacts, syncStatus ->
+    ) { settings, contacts, crmTags, crmStages, syncStatus ->
         val focusTags = settings?.crmFocusTags
             ?.split(",")
             ?.map { it.trim() }
@@ -39,15 +44,27 @@ class SettingsViewModel @Inject constructor(
             ?.filter { it.isNotBlank() }
             .orEmpty()
 
-        val availableTags = contacts
+        val contactTags = contacts
             .flatMap { it.getTagsList() }
             .map { it.trim() }
             .filter { it.isNotBlank() }
             .distinct()
             .sorted()
 
-        val availableStages = contacts
+        val availableTags = (if (crmTags.isNotEmpty()) crmTags else contactTags)
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+
+        val contactStages = contacts
             .mapNotNull { it.stage?.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+
+        val availableStages = (if (crmStages.isNotEmpty()) crmStages else contactStages)
+            .map { it.trim() }
             .filter { it.isNotBlank() }
             .distinct()
             .sorted()
@@ -88,6 +105,23 @@ class SettingsViewModel @Inject constructor(
                 }
                 crmRepository.setConnector(connector)
             }
+        }
+
+        viewModelScope.launch {
+            // Pull tag catalog when CRM credentials are present.
+            settingsFlow
+                .map { (it?.crmProvider ?: "demo") to (it?.crmApiKey ?: "") }
+                .distinctUntilChanged()
+                .collect { (provider, key) ->
+                    if (provider == "followupboss" && key.isNotBlank()) {
+                        crmTagsFlow.value = crmRepository.fetchAllTags().sorted()
+                        // stages endpoint is optional; we keep contact-derived stages unless implemented
+                        crmStagesFlow.value = emptyList()
+                    } else {
+                        crmTagsFlow.value = emptyList()
+                        crmStagesFlow.value = emptyList()
+                    }
+                }
         }
     }
     

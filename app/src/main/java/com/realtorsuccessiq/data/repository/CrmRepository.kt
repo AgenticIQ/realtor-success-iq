@@ -126,6 +126,18 @@ class CrmRepository(
         val connector = currentConnector ?: return emptyList()
         return connector.searchContacts(query)
     }
+
+    suspend fun fetchAllTags(): List<String> {
+        ensureConnectorConfigured()
+        val connector = currentConnector ?: return emptyList()
+        return connector.fetchAllTags()
+    }
+
+    suspend fun fetchAllStages(): List<String> {
+        ensureConnectorConfigured()
+        val connector = currentConnector ?: return emptyList()
+        return connector.fetchAllStages()
+    }
 }
 
 sealed class SyncStatus {
