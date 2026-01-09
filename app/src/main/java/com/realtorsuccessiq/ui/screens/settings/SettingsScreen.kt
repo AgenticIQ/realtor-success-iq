@@ -199,6 +199,11 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Text(
+                text = uiState.tagCatalogInfo,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         item {
@@ -458,6 +463,7 @@ private fun MultiSelectDialog(
         if (q.isBlank()) options
         else options.filter { it.contains(q, ignoreCase = true) }
     }
+    var custom by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -474,6 +480,29 @@ private fun MultiSelectDialog(
                         singleLine = true,
                         label = { Text("Search") }
                     )
+                    OutlinedTextField(
+                        value = custom,
+                        onValueChange = { custom = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text("Add custom (exact tag/stage name)") }
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = {
+                                val v = custom.trim()
+                                if (v.isNotBlank()) {
+                                    workingSelection = workingSelection + v
+                                    custom = ""
+                                }
+                            }
+                        ) { Text("Add") }
+                        Text(
+                            text = "Use this if Follow Up Boss doesn’t expose some tags via API.",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(4.dp)

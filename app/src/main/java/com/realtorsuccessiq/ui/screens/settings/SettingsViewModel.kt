@@ -25,14 +25,16 @@ class SettingsViewModel @Inject constructor(
 
     private val crmTagsFlow = MutableStateFlow<List<String>>(emptyList())
     private val crmStagesFlow = MutableStateFlow<List<String>>(emptyList())
+    private val tagCatalogInfoFlow = MutableStateFlow("Tag source: contacts (fallback)")
 
     val uiState: StateFlow<SettingsUiState> = combine(
         settingsFlow,
         contactsFlow,
         crmTagsFlow,
         crmStagesFlow,
+        tagCatalogInfoFlow,
         crmRepository.syncStatus
-    ) { settings, contacts, crmTags, crmStages, syncStatus ->
+    ) { settings, contacts, crmTags, crmStages, tagInfo, syncStatus ->
         val focusTags = settings?.crmFocusTags
             ?.split(",")
             ?.map { it.trim() }
@@ -82,6 +84,7 @@ class SettingsViewModel @Inject constructor(
             availableStages = availableStages,
             availableTagsCount = availableTags.size,
             availableStagesCount = availableStages.size,
+            tagCatalogInfo = tagInfo,
             lastSyncAt = settings?.lastSyncAt,
             syncStatus = syncStatus
         )
@@ -116,12 +119,19 @@ class SettingsViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect { (provider, key) ->
                     if (provider == "followupboss" && key.isNotBlank()) {
-                        crmTagsFlow.value = crmRepository.fetchAllTags().sorted()
+                        val tags = try { crmRepository.fetchAllTags().sorted() } catch (e: Exception) { emptyList() }
+                        crmTagsFlow.value = tags
+                        tagCatalogInfoFlow.value = if (tags.isNotEmpty()) {
+                            "Tag source: FUB catalog (${tags.size})"
+                        } else {
+                            "Tag source: contacts (FUB catalog empty/unavailable)"
+                        }
                         // stages endpoint is optional; we keep contact-derived stages unless implemented
                         crmStagesFlow.value = emptyList()
                     } else {
                         crmTagsFlow.value = emptyList()
                         crmStagesFlow.value = emptyList()
+                        tagCatalogInfoFlow.value = "Tag source: contacts (no CRM)"
                     }
                 }
         }
@@ -183,7 +193,13 @@ class SettingsViewModel @Inject constructor(
 
             // Refresh tag catalog on demand (so you don't have to re-enter the API key).
             if (settings.crmProvider == "followupboss" && !settings.crmApiKey.isNullOrBlank()) {
-                crmTagsFlow.value = crmRepository.fetchAllTags().sorted()
+                val tags = try { crmRepository.fetchAllTags().sorted() } catch (e: Exception) { emptyList() }
+                crmTagsFlow.value = tags
+                tagCatalogInfoFlow.value = if (tags.isNotEmpty()) {
+                    "Tag source: FUB catalog (${tags.size})"
+                } else {
+                    "Tag source: contacts (FUB catalog empty/unavailable)"
+                }
             }
 
             localRepository.saveSettings(settings.copy(lastSyncAt = System.currentTimeMillis()))
@@ -225,6 +241,7 @@ data class SettingsUiState(
     val availableStages: List<String> = emptyList(),
     val availableTagsCount: Int = 0,
     val availableStagesCount: Int = 0,
+    val tagCatalogInfo: String = "Tag source: contacts (fallback)",
     val lastSyncAt: Long? = null,
     val syncStatus: com.realtorsuccessiq.data.repository.SyncStatus = com.realtorsuccessiq.data.repository.SyncStatus.Disconnected
 )

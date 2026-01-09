@@ -69,7 +69,13 @@ data class FollowUpBossTasksResponse(
 }
 
 data class FollowUpBossMetadata(
-    val cursor: String? = null
+    @SerializedName("cursor") val cursor: String? = null,
+    @SerializedName("nextCursor") val nextCursor: String? = null,
+    @SerializedName("next_cursor") val nextCursorSnake: String? = null,
+    @SerializedName("next") val next: String? = null
+) {
+    val effectiveCursor: String?
+        get() = cursor ?: nextCursor ?: nextCursorSnake ?: next
 )
 
 data class FollowUpBossPerson(

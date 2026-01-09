@@ -174,7 +174,7 @@ class FollowUpBossConnector(
                 val names = body.items.mapNotNull { it.name?.trim() }.filter { it.isNotBlank() }
                 all.addAll(names)
 
-                val next = body.metadata?.cursor?.takeIf { it.isNotBlank() } ?: break
+                val next = body.metadata?.effectiveCursor?.takeIf { it.isNotBlank() } ?: break
                 if (!seenCursors.add(next)) break
                 cursor = next
                 continue
@@ -244,7 +244,7 @@ class FollowUpBossConnector(
             if (items.isEmpty()) break
             all.addAll(items)
 
-            val next = body.metadata?.cursor?.takeIf { it.isNotBlank() } ?: break
+            val next = body.metadata?.effectiveCursor?.takeIf { it.isNotBlank() } ?: break
             if (!seenCursors.add(next)) break
             cursor = next
         }
