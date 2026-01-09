@@ -76,7 +76,7 @@ data class FollowUpBossMetadata(
 ) {
     val effectiveCursor: String?
         get() = cursor ?: nextCursor ?: nextCursorSnake ?: next
-)
+}
 
 data class FollowUpBossPerson(
     val id: Long? = null,
