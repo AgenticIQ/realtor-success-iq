@@ -194,6 +194,11 @@ fun SettingsScreen(
                 text = "CRM Focus Filters",
                 style = MaterialTheme.typography.titleMedium
             )
+            Text(
+                text = "Loaded: ${uiState.availableTagsCount} tags • ${uiState.availableStagesCount} stages",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         item {

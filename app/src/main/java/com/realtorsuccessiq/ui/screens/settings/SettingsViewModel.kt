@@ -80,6 +80,8 @@ class SettingsViewModel @Inject constructor(
             focusStages = focusStages,
             availableTags = availableTags,
             availableStages = availableStages,
+            availableTagsCount = availableTags.size,
+            availableStagesCount = availableStages.size,
             lastSyncAt = settings?.lastSyncAt,
             syncStatus = syncStatus
         )
@@ -178,6 +180,12 @@ class SettingsViewModel @Inject constructor(
             crmRepository.validateConnection()
             crmRepository.syncDownContacts()
             crmRepository.syncDownTasks()
+
+            // Refresh tag catalog on demand (so you don't have to re-enter the API key).
+            if (settings.crmProvider == "followupboss" && !settings.crmApiKey.isNullOrBlank()) {
+                crmTagsFlow.value = crmRepository.fetchAllTags().sorted()
+            }
+
             localRepository.saveSettings(settings.copy(lastSyncAt = System.currentTimeMillis()))
         }
     }
@@ -215,6 +223,8 @@ data class SettingsUiState(
     val focusStages: List<String> = emptyList(),
     val availableTags: List<String> = emptyList(),
     val availableStages: List<String> = emptyList(),
+    val availableTagsCount: Int = 0,
+    val availableStagesCount: Int = 0,
     val lastSyncAt: Long? = null,
     val syncStatus: com.realtorsuccessiq.data.repository.SyncStatus = com.realtorsuccessiq.data.repository.SyncStatus.Disconnected
 )

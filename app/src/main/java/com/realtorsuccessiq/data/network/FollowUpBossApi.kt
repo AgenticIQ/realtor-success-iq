@@ -31,10 +31,16 @@ interface FollowUpBossApi {
     suspend fun postTask(@Body task: Map<String, Any>): Response<FollowUpBossGenericResponse>
 
     @GET("tags")
-    suspend fun getTagsWrapped(): Response<FollowUpBossTagsResponse>
+    suspend fun getTagsWrapped(
+        @Query("cursor") cursor: String? = null,
+        @Query("limit") limit: Int? = null
+    ): Response<FollowUpBossTagsResponse>
 
     @GET("tags")
-    suspend fun getTagsList(): Response<List<FollowUpBossTag>>
+    suspend fun getTagsList(
+        @Query("cursor") cursor: String? = null,
+        @Query("limit") limit: Int? = null
+    ): Response<List<FollowUpBossTag>>
 }
 
 data class FollowUpBossIdentity(
@@ -96,13 +102,15 @@ data class FollowUpBossGenericResponse(
 
 data class FollowUpBossTagsResponse(
     @SerializedName("tags") val tags: List<FollowUpBossTag>? = null,
-    @SerializedName("results") val results: List<FollowUpBossTag>? = null
+    @SerializedName("results") val results: List<FollowUpBossTag>? = null,
+    @SerializedName("_metadata") val metadata: FollowUpBossMetadata? = null
 ) {
     val items: List<FollowUpBossTag>
         get() = tags ?: results ?: emptyList()
 }
 
 data class FollowUpBossTag(
+    val id: Long? = null,
     val name: String? = null
 )
 

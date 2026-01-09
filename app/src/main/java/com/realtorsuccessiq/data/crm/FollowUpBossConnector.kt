@@ -150,25 +150,55 @@ class FollowUpBossConnector(
     }
 
     override suspend fun fetchAllTags(): List<String> {
-        // Prefer the tags catalog endpoint so users see all tags, not just tags on a subset of contacts.
+        // Fetch full tag catalog with cursor pagination so the list isn't capped.
         return try {
-            val wrapped = api.getTagsWrapped()
-            if (wrapped.isSuccessful) {
-                wrapped.body()
-                    ?.items
-                    .orEmpty()
-                    .mapNotNull { it.name?.trim() }
-                    .filter { it.isNotBlank() }
-                    .distinct()
-            } else {
-                // Fallback: sometimes the endpoint returns a raw array
-                val raw = api.getTagsList()
-                if (!raw.isSuccessful) emptyList()
-                else raw.body().orEmpty().mapNotNull { it.name?.trim() }.filter { it.isNotBlank() }.distinct()
-            }
+            fetchAllTagsPaged()
         } catch (_: Exception) {
             emptyList()
         }
+    }
+
+    private suspend fun fetchAllTagsPaged(): List<String> {
+        val all = mutableListOf<String>()
+        var cursor: String? = null
+        val seenCursors = mutableSetOf<String>()
+        var pages = 0
+
+        while (pages < 200) {
+            pages++
+            val wrapped = api.getTagsWrapped(cursor = cursor, limit = 200)
+            if (wrapped.code() == 429) throw RateLimitException()
+
+            if (wrapped.isSuccessful) {
+                val body = wrapped.body() ?: break
+                val names = body.items.mapNotNull { it.name?.trim() }.filter { it.isNotBlank() }
+                all.addAll(names)
+
+                val next = body.metadata?.cursor?.takeIf { it.isNotBlank() } ?: break
+                if (!seenCursors.add(next)) break
+                cursor = next
+                continue
+            }
+
+            // Fallback: some accounts/endpoints may return a raw array instead of wrapper JSON.
+            val raw = api.getTagsList(cursor = cursor, limit = 200)
+            if (raw.code() == 429) throw RateLimitException()
+            if (!raw.isSuccessful) {
+                throw RuntimeException("Failed to fetch tags: ${raw.code()}")
+            }
+            val list = raw.body().orEmpty()
+            val names = list.mapNotNull { it.name?.trim() }.filter { it.isNotBlank() }
+            all.addAll(names)
+
+            // If it's a raw array response, we don't have cursor metadata; treat it as complete.
+            break
+        }
+
+        return all
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
     }
 
     private fun mapPersonToContact(person: FollowUpBossPerson): Contact? {
