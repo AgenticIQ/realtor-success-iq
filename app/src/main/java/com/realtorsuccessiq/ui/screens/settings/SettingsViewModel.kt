@@ -88,7 +88,7 @@ class SettingsViewModel @Inject constructor(
             lastSyncAt = settings?.lastSyncAt,
             syncStatus = syncStatus
         )
-    )
+    }
 
     val uiState: StateFlow<SettingsUiState> = combine(
         baseUiState,
