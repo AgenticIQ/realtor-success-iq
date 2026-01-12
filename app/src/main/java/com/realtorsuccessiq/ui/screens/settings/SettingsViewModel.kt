@@ -6,9 +6,11 @@ import com.realtorsuccessiq.data.crm.CrmConnector
 import com.realtorsuccessiq.data.crm.DemoConnector
 import com.realtorsuccessiq.data.crm.FollowUpBossConnector
 import com.realtorsuccessiq.data.crm.SalesforceConnector
+import com.realtorsuccessiq.data.model.Contact
 import com.realtorsuccessiq.data.model.UserSettings
 import com.realtorsuccessiq.data.repository.CrmRepository
 import com.realtorsuccessiq.data.repository.LocalRepository
+import com.realtorsuccessiq.data.repository.SyncStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -34,7 +36,7 @@ class SettingsViewModel @Inject constructor(
         crmStagesFlow,
         tagCatalogInfoFlow,
         crmRepository.syncStatus
-    ) { settings, contacts, crmTags, crmStages, tagInfo, syncStatus ->
+    ) { settings: UserSettings?, contacts: List<Contact>, crmTags: List<String>, crmStages: List<String>, tagInfo: String, syncStatus: SyncStatus ->
         val focusTags = settings?.crmFocusTags
             ?.split(",")
             ?.map { it.trim() }
