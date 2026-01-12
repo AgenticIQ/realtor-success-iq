@@ -83,6 +83,7 @@ class SettingsViewModel @Inject constructor(
             availableStages = availableStages,
             availableTagsCount = availableTags.size,
             availableStagesCount = availableStages.size,
+            contactsCount = contacts.size,
             // Filled in by a second combine() to avoid 6-flow combine overload issues.
             tagCatalogInfo = "",
             lastSyncAt = settings?.lastSyncAt,
@@ -262,6 +263,7 @@ data class SettingsUiState(
     val availableStages: List<String> = emptyList(),
     val availableTagsCount: Int = 0,
     val availableStagesCount: Int = 0,
+    val contactsCount: Int = 0,
     val tagCatalogInfo: String = "Tag source: contacts (fallback)",
     val lastSyncAt: Long? = null,
     val syncStatus: com.realtorsuccessiq.data.repository.SyncStatus = com.realtorsuccessiq.data.repository.SyncStatus.Disconnected
