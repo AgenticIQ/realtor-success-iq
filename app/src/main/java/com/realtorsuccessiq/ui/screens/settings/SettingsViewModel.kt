@@ -6,11 +6,9 @@ import com.realtorsuccessiq.data.crm.CrmConnector
 import com.realtorsuccessiq.data.crm.DemoConnector
 import com.realtorsuccessiq.data.crm.FollowUpBossConnector
 import com.realtorsuccessiq.data.crm.SalesforceConnector
-import com.realtorsuccessiq.data.model.Contact
 import com.realtorsuccessiq.data.model.UserSettings
 import com.realtorsuccessiq.data.repository.CrmRepository
 import com.realtorsuccessiq.data.repository.LocalRepository
-import com.realtorsuccessiq.data.repository.SyncStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -29,14 +27,13 @@ class SettingsViewModel @Inject constructor(
     private val crmStagesFlow = MutableStateFlow<List<String>>(emptyList())
     private val tagCatalogInfoFlow = MutableStateFlow("Tag source: contacts (fallback)")
 
-    val uiState: StateFlow<SettingsUiState> = combine(
+    private val baseUiState: Flow<SettingsUiState> = combine(
         settingsFlow,
         contactsFlow,
         crmTagsFlow,
         crmStagesFlow,
-        tagCatalogInfoFlow,
         crmRepository.syncStatus
-    ) { settings: UserSettings?, contacts: List<Contact>, crmTags: List<String>, crmStages: List<String>, tagInfo: String, syncStatus: SyncStatus ->
+    ) { settings, contacts, crmTags, crmStages, syncStatus ->
         val focusTags = settings?.crmFocusTags
             ?.split(",")
             ?.map { it.trim() }
@@ -86,10 +83,18 @@ class SettingsViewModel @Inject constructor(
             availableStages = availableStages,
             availableTagsCount = availableTags.size,
             availableStagesCount = availableStages.size,
-            tagCatalogInfo = tagInfo,
+            // Filled in by a second combine() to avoid 6-flow combine overload issues.
+            tagCatalogInfo = "",
             lastSyncAt = settings?.lastSyncAt,
             syncStatus = syncStatus
         )
+    )
+
+    val uiState: StateFlow<SettingsUiState> = combine(
+        baseUiState,
+        tagCatalogInfoFlow
+    ) { base, tagInfo ->
+        base.copy(tagCatalogInfo = tagInfo)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
