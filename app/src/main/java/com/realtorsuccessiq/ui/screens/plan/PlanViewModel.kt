@@ -80,4 +80,3 @@ data class PlanUiState(
     val userLogoText: String = ""
 )
 
-

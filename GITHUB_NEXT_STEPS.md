@@ -95,4 +95,3 @@ GitHub Actions will automatically build a new APK!
 ---
 
 **Ready?** Create the repo on GitHub, then run the commands from Step 2!
-

@@ -100,4 +100,3 @@ private data class LeaderboardData(
     val entries: List<LeaderboardEntry>,
     val agentNames: Map<String, String>
 )
-

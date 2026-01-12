@@ -30,4 +30,3 @@ interface AgentDao {
     @Query("UPDATE agents SET isActive = 0 WHERE id = :agentId")
     suspend fun deactivateAgent(agentId: String)
 }
-

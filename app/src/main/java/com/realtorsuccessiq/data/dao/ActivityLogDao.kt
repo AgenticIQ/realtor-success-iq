@@ -31,4 +31,3 @@ interface ActivityLogDao {
     @Query("UPDATE activity_logs SET synced = 1 WHERE id IN (:ids)")
     suspend fun markSynced(ids: List<String>)
 }
-

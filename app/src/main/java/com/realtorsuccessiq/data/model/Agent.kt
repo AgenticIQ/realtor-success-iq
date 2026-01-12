@@ -15,4 +15,3 @@ data class Agent(
     val joinedAt: Long = System.currentTimeMillis(),
     val lastActiveAt: Long = System.currentTimeMillis()
 )
-

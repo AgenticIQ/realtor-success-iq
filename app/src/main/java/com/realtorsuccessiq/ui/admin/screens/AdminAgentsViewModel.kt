@@ -50,4 +50,3 @@ class AdminAgentsViewModel @Inject constructor(
 data class AdminAgentsUiState(
     val agents: List<Agent> = emptyList()
 )
-

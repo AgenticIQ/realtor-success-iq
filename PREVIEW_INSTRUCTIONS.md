@@ -184,4 +184,3 @@ Once you can preview the app:
 - Check `App_Develpment_Spec.md` for full specification
 - Review Logcat for runtime errors
 - Use Android Studio's built-in debugging tools
-

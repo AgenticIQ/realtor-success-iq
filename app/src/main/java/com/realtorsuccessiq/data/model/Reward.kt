@@ -20,4 +20,3 @@ enum class BadgeType {
     CALL_STREAK_7,
     CALL_STREAK_30
 }
-

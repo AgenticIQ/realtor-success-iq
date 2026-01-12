@@ -5,11 +5,13 @@ import com.realtorsuccessiq.data.model.Task
 import com.realtorsuccessiq.data.network.FollowUpBossApi
 import com.realtorsuccessiq.data.network.FollowUpBossTag
 import com.realtorsuccessiq.data.network.FollowUpBossPerson
+import com.realtorsuccessiq.data.network.FollowUpBossMetadata
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.net.URLDecoder
 import java.util.concurrent.TimeUnit
 
 class FollowUpBossConnector(
@@ -151,11 +153,7 @@ class FollowUpBossConnector(
 
     override suspend fun fetchAllTags(): List<String> {
         // Fetch full tag catalog with cursor pagination so the list isn't capped.
-        return try {
-            fetchAllTagsPaged()
-        } catch (_: Exception) {
-            emptyList()
-        }
+        return fetchAllTagsPaged()
     }
 
     private suspend fun fetchAllTagsPaged(): List<String> {
@@ -174,7 +172,11 @@ class FollowUpBossConnector(
                 val names = body.items.mapNotNull { it.name?.trim() }.filter { it.isNotBlank() }
                 all.addAll(names)
 
-                val next = body.metadata?.effectiveCursor?.takeIf { it.isNotBlank() } ?: break
+                val next = extractNextCursor(
+                    previousCursor = cursor,
+                    metadata = body.metadata,
+                    headers = wrapped.headers()
+                ) ?: break
                 if (!seenCursors.add(next)) break
                 cursor = next
                 continue
@@ -244,12 +246,77 @@ class FollowUpBossConnector(
             if (items.isEmpty()) break
             all.addAll(items)
 
-            val next = body.metadata?.effectiveCursor?.takeIf { it.isNotBlank() } ?: break
+            val next = extractNextCursor(
+                previousCursor = cursor,
+                metadata = body.metadata,
+                headers = response.headers()
+            ) ?: break
             if (!seenCursors.add(next)) break
             cursor = next
         }
 
         return all
+    }
+
+    /**
+     * FUB pagination can provide the next cursor either in JSON metadata or as a next-link/header.
+     * We avoid using a cursor that equals the previous cursor to prevent "stuck on page 1".
+     */
+    private fun extractNextCursor(
+        previousCursor: String?,
+        metadata: FollowUpBossMetadata?,
+        headers: okhttp3.Headers
+    ): String? {
+        // 1) Prefer metadata next cursor fields if present.
+        val metaNext = metadata?.effectiveCursor
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?.let { decodeIfNeeded(extractCursorParamIfUrl(it) ?: it) }
+
+        if (!metaNext.isNullOrBlank() && metaNext != previousCursor) return metaNext
+
+        // 2) Some APIs put next cursor in headers.
+        val headerCandidates = listOf(
+            "X-Next-Cursor",
+            "X-NextCursor",
+            "Next-Cursor",
+            "X-Cursor-Next",
+            "X-Next"
+        )
+        for (name in headerCandidates) {
+            val v = headers[name]?.trim()?.takeIf { it.isNotBlank() } ?: continue
+            val token = decodeIfNeeded(extractCursorParamIfUrl(v) ?: v)
+            if (token.isNotBlank() && token != previousCursor) return token
+        }
+
+        // 3) Link header (RFC5988): <url>; rel="next"
+        val link = headers["Link"] ?: headers["link"]
+        if (!link.isNullOrBlank()) {
+            val nextUrl = Regex("""<([^>]+)>\s*;\s*rel="?next"?""", RegexOption.IGNORE_CASE)
+                .find(link)
+                ?.groupValues
+                ?.getOrNull(1)
+            if (!nextUrl.isNullOrBlank()) {
+                val token = decodeIfNeeded(extractCursorParamIfUrl(nextUrl) ?: nextUrl)
+                if (token.isNotBlank() && token != previousCursor) return token
+            }
+        }
+
+        return null
+    }
+
+    private fun extractCursorParamIfUrl(value: String): String? {
+        val raw = value.trim()
+        val match = Regex("""[?&]cursor=([^&]+)""", RegexOption.IGNORE_CASE).find(raw)
+        return match?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.isNotBlank() }
+    }
+
+    private fun decodeIfNeeded(value: String): String {
+        return try {
+            URLDecoder.decode(value, "UTF-8")
+        } catch (_: Exception) {
+            value
+        }
     }
 }
 

@@ -216,4 +216,3 @@ class LeaderboardCalculator(
         adminRepository.awardPrizes(winners)
     }
 }
-

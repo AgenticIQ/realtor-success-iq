@@ -62,4 +62,3 @@
 - **Development**: Use Android Studio on your laptop
 
 You don't need to do anything on your phone for GitHub Actions - just view it in your laptop browser and download the APK when it's ready!
-

@@ -21,4 +21,3 @@ interface BrokerageDao {
     @Update
     suspend fun updateBrokerage(brokerage: Brokerage)
 }
-

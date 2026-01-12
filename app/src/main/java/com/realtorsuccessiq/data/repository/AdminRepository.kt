@@ -93,4 +93,3 @@ data class AgentStats(
     val totalStars: Int,
     val leadGenMinutes: Long
 )
-

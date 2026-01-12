@@ -15,4 +15,3 @@ interface RewardDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReward(reward: Reward)
 }
-

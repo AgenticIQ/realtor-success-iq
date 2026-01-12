@@ -69,4 +69,3 @@ private fun getScreenTitle(screen: AdminScreen): String {
         is AdminScreen.Branding -> "Branding"
     }
 }
-

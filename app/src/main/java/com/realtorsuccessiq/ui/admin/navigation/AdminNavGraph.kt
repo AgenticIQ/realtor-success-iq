@@ -37,4 +37,3 @@ sealed class AdminScreen(val route: String) {
     object Prizes : AdminScreen("admin_prizes")
     object Branding : AdminScreen("admin_branding")
 }
-

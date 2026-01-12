@@ -17,4 +17,3 @@ object PrefsModule {
     fun provideAppPrefs(@ApplicationContext context: Context): AppPrefs = AppPrefs(context)
 }
 
-

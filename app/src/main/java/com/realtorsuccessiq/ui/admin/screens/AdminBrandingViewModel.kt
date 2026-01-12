@@ -82,4 +82,3 @@ data class AdminBrandingUiState(
     val secondaryColor: Long = 0xFF0B1220,
     val accentColor: Long = 0xFFD4AF37
 )
-

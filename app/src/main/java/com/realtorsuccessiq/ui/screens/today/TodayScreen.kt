@@ -266,4 +266,3 @@ fun SuggestionCard(
         }
     }
 }
-

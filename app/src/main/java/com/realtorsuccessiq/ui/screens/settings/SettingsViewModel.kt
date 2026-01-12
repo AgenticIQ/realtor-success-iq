@@ -119,12 +119,19 @@ class SettingsViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect { (provider, key) ->
                     if (provider == "followupboss" && key.isNotBlank()) {
-                        val tags = try { crmRepository.fetchAllTags().sorted() } catch (e: Exception) { emptyList() }
-                        crmTagsFlow.value = tags
-                        tagCatalogInfoFlow.value = if (tags.isNotEmpty()) {
-                            "Tag source: FUB catalog (${tags.size})"
-                        } else {
-                            "Tag source: contacts (FUB catalog empty/unavailable)"
+                        tagCatalogInfoFlow.value = "Tag source: fetching FUB catalog…"
+                        try {
+                            val tags = crmRepository.fetchAllTags().sorted()
+                            crmTagsFlow.value = tags
+                            tagCatalogInfoFlow.value = if (tags.isNotEmpty()) {
+                                "Tag source: FUB catalog (${tags.size})"
+                            } else {
+                                "Tag source: contacts (FUB catalog returned 0)"
+                            }
+                        } catch (e: Exception) {
+                            crmTagsFlow.value = emptyList()
+                            tagCatalogInfoFlow.value =
+                                "Tag source: contacts (FUB tags fetch failed: ${e.message ?: e::class.java.simpleName})"
                         }
                         // stages endpoint is optional; we keep contact-derived stages unless implemented
                         crmStagesFlow.value = emptyList()
@@ -193,12 +200,19 @@ class SettingsViewModel @Inject constructor(
 
             // Refresh tag catalog on demand (so you don't have to re-enter the API key).
             if (settings.crmProvider == "followupboss" && !settings.crmApiKey.isNullOrBlank()) {
-                val tags = try { crmRepository.fetchAllTags().sorted() } catch (e: Exception) { emptyList() }
-                crmTagsFlow.value = tags
-                tagCatalogInfoFlow.value = if (tags.isNotEmpty()) {
-                    "Tag source: FUB catalog (${tags.size})"
-                } else {
-                    "Tag source: contacts (FUB catalog empty/unavailable)"
+                tagCatalogInfoFlow.value = "Tag source: fetching FUB catalog…"
+                try {
+                    val tags = crmRepository.fetchAllTags().sorted()
+                    crmTagsFlow.value = tags
+                    tagCatalogInfoFlow.value = if (tags.isNotEmpty()) {
+                        "Tag source: FUB catalog (${tags.size})"
+                    } else {
+                        "Tag source: contacts (FUB catalog returned 0)"
+                    }
+                } catch (e: Exception) {
+                    crmTagsFlow.value = emptyList()
+                    tagCatalogInfoFlow.value =
+                        "Tag source: contacts (FUB tags fetch failed: ${e.message ?: e::class.java.simpleName})"
                 }
             }
 

@@ -24,4 +24,3 @@ interface PrizeWinnerDao {
     @Query("UPDATE prize_winners SET redeemed = 1, redeemedAt = :timestamp WHERE id = :winnerId")
     suspend fun markRedeemed(winnerId: String, timestamp: Long = System.currentTimeMillis())
 }
-

@@ -18,7 +18,8 @@ object NightlyUpdateManager {
     private val NIGHTLY_APK_URL: String
         get() = "https://github.com/AgenticIQ/realtor-success-iq/releases/download/${BuildConfig.UPDATE_TAG}/${BuildConfig.UPDATE_APK_NAME}"
 
-    private const val APK_FILE_NAME = "realtorsuccessiq-nightly.apk"
+    private val APK_FILE_NAME: String
+        get() = BuildConfig.UPDATE_APK_NAME
 
     fun startDownloadAndInstall(context: Context): Result {
         val appContext = context.applicationContext

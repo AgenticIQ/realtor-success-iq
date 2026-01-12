@@ -41,4 +41,3 @@ class AppPrefs(private val context: Context) {
     }
 }
 
-

@@ -29,4 +29,3 @@ enum class PrizeType {
     EXPERIENCE,
     OTHER
 }
-

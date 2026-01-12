@@ -49,4 +49,3 @@ interface LeaderboardDao {
     @Query("DELETE FROM leaderboard_entries WHERE brokerageId = :brokerageId AND period = :period AND periodStart < :before")
     suspend fun deleteOldEntries(brokerageId: String, period: LeaderboardPeriod, before: Long)
 }
-

@@ -28,4 +28,3 @@ enum class ActivityType {
     LEAD_GEN_SESSION,
     WEEKLY_REVIEW
 }
-

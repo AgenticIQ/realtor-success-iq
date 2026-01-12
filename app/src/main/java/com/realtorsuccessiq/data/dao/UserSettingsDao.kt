@@ -18,4 +18,3 @@ interface UserSettingsDao {
     @Update
     suspend fun updateSettings(settings: UserSettings)
 }
-

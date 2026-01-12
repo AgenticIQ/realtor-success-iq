@@ -101,4 +101,3 @@ Both must compile and publish in CI. NEXT may add features without breaking Stab
 - This section is updated after each batch of changes to show what is complete vs pending.
 - **Pending right now**: verify on-device that theme selection + filters are visibly taking effect; add visible “flavor/version” indicator so Stable vs NEXT cannot be confused.
 
-

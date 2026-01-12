@@ -118,4 +118,3 @@ private fun formatDate(timestamp: Long): String {
     val format = java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.getDefault())
     return format.format(date)
 }
-

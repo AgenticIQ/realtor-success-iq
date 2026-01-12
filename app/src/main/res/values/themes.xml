@@ -2,4 +2,3 @@
 <resources>
     <style name="Theme.RealtorSuccessIQ" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>
-

@@ -42,4 +42,3 @@ class AdminPrizesViewModel @Inject constructor(
 data class AdminPrizesUiState(
     val prizes: List<Prize> = emptyList()
 )
-

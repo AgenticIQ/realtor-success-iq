@@ -48,4 +48,3 @@ class SalesforceConnector : CrmConnector {
         return null
     }
 }
-

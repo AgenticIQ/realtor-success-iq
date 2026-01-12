@@ -27,4 +27,3 @@ interface TaskDao {
     @Delete
     suspend fun deleteTask(task: Task)
 }
-

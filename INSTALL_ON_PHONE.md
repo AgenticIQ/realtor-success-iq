@@ -263,4 +263,3 @@ git push -u origin main
 ---
 
 **Pro Tip**: Keep USB debugging enabled and phone connected while developing. You can click Run in Android Studio and instantly see changes on your phone!
-

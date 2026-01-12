@@ -74,8 +74,43 @@ data class FollowUpBossMetadata(
     @SerializedName("next_cursor") val nextCursorSnake: String? = null,
     @SerializedName("next") val next: String? = null
 ) {
+    /**
+     * Follow Up Boss pagination varies by endpoint/account:
+     * - Some return a next cursor token (nextCursor / next_cursor)
+     * - Some return a "next" link URL that includes ?cursor=... (or &cursor=...)
+     * - Some may include a "cursor" field that represents the *current* cursor, not the next one
+     *
+     * We therefore prefer "next" cursor fields and, when given a URL, extract the cursor token.
+     */
     val effectiveCursor: String?
-        get() = cursor ?: nextCursor ?: nextCursorSnake ?: next
+        get() = extractCursorToken(
+            nextCursor
+                ?: nextCursorSnake
+                ?: next
+                ?: cursor
+        )
+
+    private fun extractCursorToken(value: String?): String? {
+        val raw = value?.trim()?.takeIf { it.isNotBlank() } ?: return null
+
+        // If it's already a token, return as-is.
+        if (!raw.contains("cursor=", ignoreCase = true) && !raw.contains("://")) return raw
+
+        // If it's a URL (or query string) containing cursor=, extract that param.
+        val match = Regex("""[?&]cursor=([^&]+)""", RegexOption.IGNORE_CASE).find(raw)
+        val token = match?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.isNotBlank() }
+        if (token != null) {
+            // The "next" link typically URL-encodes the cursor; Retrofit will encode @Query again.
+            // Decode to avoid double-encoding (e.g., %3D -> =).
+            return try {
+                java.net.URLDecoder.decode(token, "UTF-8")
+            } catch (_: Exception) {
+                token
+            }
+        }
+
+        return raw
+    }
 }
 
 data class FollowUpBossPerson(

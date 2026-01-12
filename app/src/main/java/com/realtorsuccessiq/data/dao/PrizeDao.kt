@@ -24,4 +24,3 @@ interface PrizeDao {
     @Query("UPDATE prizes SET isActive = 0 WHERE id = :prizeId")
     suspend fun deactivatePrize(prizeId: String)
 }
-

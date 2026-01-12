@@ -15,4 +15,3 @@ data class PrizeWinner(
     val redeemed: Boolean = false,
     val redeemedAt: Long? = null
 )
-

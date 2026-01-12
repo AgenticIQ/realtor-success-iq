@@ -87,4 +87,3 @@ But these are optional - the app works fully offline with local data.
 - ✅ Uses local embedded database
 - ✅ Works offline
 - ✅ Native Android app
-

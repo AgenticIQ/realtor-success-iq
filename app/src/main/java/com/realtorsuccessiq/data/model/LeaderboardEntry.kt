@@ -35,4 +35,3 @@ enum class LeaderboardMetric {
     LEAD_GEN_MINUTES,
     STREAK_DAYS
 }
-

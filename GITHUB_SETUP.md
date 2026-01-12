@@ -246,4 +246,3 @@ git remote set-url origin git@github.com:YOUR_USERNAME/realtor-success-iq.git
 ---
 
 **Pro Tip**: Set up GitHub Actions once, then every push automatically builds a new APK you can download and test!
-
